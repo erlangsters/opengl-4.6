@@ -1,5 +1,5 @@
 {application, opengl_4_6,
- [{description, "An OTP library"},
+ [{description, "OpenGL 4.6 binding for the BEAM"},
   {vsn, "0.1.0"},
   {registered, []},
   {applications,
