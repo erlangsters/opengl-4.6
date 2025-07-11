@@ -202,6 +202,7 @@ To be written.
 -export_type([hint_mode/0]).
 -export_type([stencil_function/0]).
 -export_type([texture_parameter_name/0]).
+-export_type([error_code/0]).
 -export_type([pixel_store_parameter/0]).
 
 % The OpenGL bitfield types.
@@ -233,8 +234,10 @@ To be written.
 -export([is_query/1]).
 -export([is_transform_feedback/1]).
 -export([read_buffer/1]).
+-export([uniform/3]).
 -export([delete_transform_feedbacks/2]).
 -export([create_shader/1]).
+-export([get_uniform/4]).
 -export([vertex_attrib_pointer/6]).
 -export([texture_parameter_i/4]).
 -export([get_integer64/2]).
@@ -275,12 +278,14 @@ To be written.
 -export([stencil_mask_separate/2]).
 -export([scissor/4]).
 -export([tex_image_2d/9]).
+-export([get_error/0]).
 -export([is_vertex_array/1]).
 -export([create_textures/2]).
 -export([point_size/1]).
 -export([bind_texture/2]).
 -export([delete_shader/1]).
 -export([depth_range/2]).
+-export([uniform/4]).
 -export([sampler_parameter/4]).
 -export([get_integer/3]).
 -export([draw_buffer/1]).
@@ -369,6 +374,7 @@ To be written.
 -export([get_integer64/3]).
 -export([finish/0]).
 -export([copy_tex_image_1d/7]).
+-export([uniform_matrix/5]).
 -export([get_texture_parameter_i/4]).
 -export([end_conditional_render/0]).
 -export([tex_image_3d_multisample/7]).
@@ -382,11 +388,48 @@ To be written.
 -export([delete_vertex_arrays/2]).
 -export([use_program/1]).
 -export([delete_program/1]).
+-export([get_uniform_location/2]).
 -export([copy_texture_sub_image_2d/8]).
 
 -include("../include/gl.hrl").
 
--doc "The OpenGL `byte` type.".
+-ifndef(DEBUG).
+-define(CALL_RAW_FUNC(Func), 
+    begin
+    case Func of
+        {} ->
+            ok;
+        {Arg__} ->
+            {ok, Arg__};
+        {Arg1__, Arg2__} ->
+            {ok, Arg1__, Arg2__};
+        {Arg1__, Arg2__, Arg3__} ->
+            {ok, Arg1__, Arg2__, Arg3__}
+    end
+    end
+).
+-else.
+-define(CALL_RAW_FUNC(Func), 
+    begin
+    Result__ = Func,
+    case gl:get_error() of
+        {ok, no_error} ->
+            case Result__ of
+                {} ->
+                    ok;
+                {Arg__} ->
+                    {ok, Arg__};
+                {Arg1__, Arg2__} ->
+                    {ok, Arg1__, Arg2__};
+                {Arg1__, Arg2__, Arg3__} ->
+                    {ok, Arg1__, Arg2__, Arg3__}
+            end;
+        {ok, Code__} ->
+            {error, Code__}
+    end
+    end
+).
+-endif.-doc "The OpenGL `byte` type.".
 -type byte() :: integer().
 -doc "The OpenGL `ubyte` type.".
 -type ubyte() :: non_neg_integer().
@@ -1544,6 +1587,17 @@ To be written.
     texture_lod_bias |
     texture_width
 .
+-doc "The OpenGL `error_code` enum.".
+-type error_code() ::
+    invalid_enum |
+    stack_underflow |
+    invalid_framebuffer_operation |
+    invalid_operation |
+    out_of_memory |
+    no_error |
+    invalid_value |
+    stack_overflow
+.
 -doc "The OpenGL `pixel_store_parameter` enum.".
 -type pixel_store_parameter() ::
     pack_skip_rows |
@@ -1586,8 +1640,28 @@ To be written.
 -nifs([glIsQuery_raw/1]).
 -nifs([glIsTransformFeedback_raw/1]).
 -nifs([glReadBuffer_raw/1]).
+-nifs([glUniform1d_raw/2]).
+-nifs([glUniform1f_raw/2]).
+-nifs([glUniform1i_raw/2]).
+-nifs([glUniform1ui_raw/2]).
+-nifs([glUniform2d_raw/3]).
+-nifs([glUniform2f_raw/3]).
+-nifs([glUniform2i_raw/3]).
+-nifs([glUniform2ui_raw/3]).
+-nifs([glUniform3d_raw/4]).
+-nifs([glUniform3f_raw/4]).
+-nifs([glUniform3i_raw/4]).
+-nifs([glUniform3ui_raw/4]).
+-nifs([glUniform4d_raw/5]).
+-nifs([glUniform4f_raw/5]).
+-nifs([glUniform4i_raw/5]).
+-nifs([glUniform4ui_raw/5]).
 -nifs([glDeleteTransformFeedbacks_raw/2]).
 -nifs([glCreateShader_raw/1]).
+-nifs([glGetUniformdv_raw/3]).
+-nifs([glGetUniformfv_raw/3]).
+-nifs([glGetUniformiv_raw/3]).
+-nifs([glGetUniformuiv_raw/3]).
 -nifs([glVertexAttribPointer_raw/6]).
 -nifs([glTextureParameterIiv_raw/3]).
 -nifs([glTextureParameterIuiv_raw/3]).
@@ -1652,12 +1726,29 @@ To be written.
 -nifs([glStencilMaskSeparate_raw/2]).
 -nifs([glScissor_raw/4]).
 -nifs([glTexImage2D_raw/9]).
+-nifs([glGetError_raw/0]).
 -nifs([glIsVertexArray_raw/1]).
 -nifs([glCreateTextures_raw/2]).
 -nifs([glPointSize_raw/1]).
 -nifs([glBindTexture_raw/2]).
 -nifs([glDeleteShader_raw/1]).
 -nifs([glDepthRange_raw/2]).
+-nifs([glUniform1dv_raw/3]).
+-nifs([glUniform1fv_raw/3]).
+-nifs([glUniform1iv_raw/3]).
+-nifs([glUniform1uiv_raw/3]).
+-nifs([glUniform2dv_raw/3]).
+-nifs([glUniform2fv_raw/3]).
+-nifs([glUniform2iv_raw/3]).
+-nifs([glUniform2uiv_raw/3]).
+-nifs([glUniform3dv_raw/3]).
+-nifs([glUniform3fv_raw/3]).
+-nifs([glUniform3iv_raw/3]).
+-nifs([glUniform3uiv_raw/3]).
+-nifs([glUniform4dv_raw/3]).
+-nifs([glUniform4fv_raw/3]).
+-nifs([glUniform4iv_raw/3]).
+-nifs([glUniform4uiv_raw/3]).
 -nifs([glSamplerParameterf_raw/3]).
 -nifs([glSamplerParameterfv_raw/3]).
 -nifs([glSamplerParameteri_raw/3]).
@@ -1789,6 +1880,24 @@ To be written.
 -nifs([glGetInteger64i_v_raw/3]).
 -nifs([glFinish_raw/0]).
 -nifs([glCopyTexImage1D_raw/7]).
+-nifs([glUniformMatrix2dv_raw/4]).
+-nifs([glUniformMatrix2fv_raw/4]).
+-nifs([glUniformMatrix2x3dv_raw/4]).
+-nifs([glUniformMatrix2x3fv_raw/4]).
+-nifs([glUniformMatrix2x4dv_raw/4]).
+-nifs([glUniformMatrix2x4fv_raw/4]).
+-nifs([glUniformMatrix3dv_raw/4]).
+-nifs([glUniformMatrix3fv_raw/4]).
+-nifs([glUniformMatrix3x2dv_raw/4]).
+-nifs([glUniformMatrix3x2fv_raw/4]).
+-nifs([glUniformMatrix3x4dv_raw/4]).
+-nifs([glUniformMatrix3x4fv_raw/4]).
+-nifs([glUniformMatrix4dv_raw/4]).
+-nifs([glUniformMatrix4fv_raw/4]).
+-nifs([glUniformMatrix4x2dv_raw/4]).
+-nifs([glUniformMatrix4x2fv_raw/4]).
+-nifs([glUniformMatrix4x3dv_raw/4]).
+-nifs([glUniformMatrix4x3fv_raw/4]).
 -nifs([glGetTextureParameterIiv_raw/3]).
 -nifs([glGetTextureParameterIuiv_raw/3]).
 -nifs([glEndConditionalRender_raw/0]).
@@ -1803,6 +1912,7 @@ To be written.
 -nifs([glDeleteVertexArrays_raw/2]).
 -nifs([glUseProgram_raw/1]).
 -nifs([glDeleteProgram_raw/1]).
+-nifs([glGetUniformLocation_raw/2]).
 -nifs([glCopyTextureSubImage2D_raw/8]).
 
 -on_load(init_nif/0).
@@ -1976,7 +2086,7 @@ disable(Cap) ->
         polygon_offset_fill -> ?GL_POLYGON_OFFSET_FILL
     end,
 
-    glDisable_raw(NewCap).
+    ?CALL_RAW_FUNC(glDisable_raw(NewCap)).
 
 -doc """
 Specify pixel arithmetic for RGB and alpha components separately.
@@ -2082,7 +2192,7 @@ blend_func_separate(Buffer, SourceRGB, DestinationRGB, SourceAlpha, DestinationA
         src1_alpha -> ?GL_SRC1_ALPHA
     end,
 
-    glBlendFuncSeparatei_raw(Buffer, NewSourceRGB, NewDestinationRGB, NewSourceAlpha, NewDestinationAlpha).
+    ?CALL_RAW_FUNC(glBlendFuncSeparatei_raw(Buffer, NewSourceRGB, NewDestinationRGB, NewSourceAlpha, NewDestinationAlpha)).
 
 -doc """
 Enable or disable a generic vertex attribute array.
@@ -2098,7 +2208,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec enable_vertex_attrib_array(Index :: gl:uint()) -> ok | {error, atom()}.
 enable_vertex_attrib_array(Index) ->
 
-    glEnableVertexAttribArray_raw(Index).
+    ?CALL_RAW_FUNC(glEnableVertexAttribArray_raw(Index)).
 
 -doc """
 Specify the clear value for the stencil buffer.
@@ -2114,7 +2224,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec clear_stencil(Value :: gl:int()) -> ok | {error, atom()}.
 clear_stencil(Value) ->
 
-    glClearStencil_raw(Value).
+    ?CALL_RAW_FUNC(glClearStencil_raw(Value)).
 
 -doc """
 Returns the information log for a program object.
@@ -2133,7 +2243,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> {ok, InfoLog :: binary()} | {error, atom()}.
 get_program_info_log(Program, InfoLog) ->
 
-    glGetProgramInfoLog_raw(Program, InfoLog).
+    ?CALL_RAW_FUNC(glGetProgramInfoLog_raw(Program, InfoLog)).
 
 -doc """
 Retrieve the info log string from a program pipeline object.
@@ -2152,7 +2262,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> {ok, InfoLog :: binary()} | {error, atom()}.
 get_program_pipeline_info_log(Pipeline, InfoLog) ->
 
-    glGetProgramPipelineInfoLog_raw(Pipeline, InfoLog).
+    ?CALL_RAW_FUNC(glGetProgramPipelineInfoLog_raw(Pipeline, InfoLog)).
 
 -doc """
 XXX: To be written.
@@ -2415,7 +2525,7 @@ get_boolean(Target, Index, Data) ->
         max_varying_vectors -> ?GL_MAX_VARYING_VECTORS
     end,
 
-    glGetBooleani_v_raw(NewTarget, Index, Data).
+    ?CALL_RAW_FUNC(glGetBooleani_v_raw(NewTarget, Index, Data)).
 
 -doc """
 XXX: To be written.
@@ -2476,7 +2586,7 @@ is_enabled(Capability, Index) ->
         polygon_offset_fill -> ?GL_POLYGON_OFFSET_FILL
     end,
 
-    glIsEnabledi_raw(NewCapability, Index).
+    ?CALL_RAW_FUNC(glIsEnabledi_raw(NewCapability, Index)).
 
 -doc """
 Create buffer objects.
@@ -2492,7 +2602,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec create_buffers(N :: pos_integer()) -> {ok, Buffers :: [buffer()]} | {error, atom()}.
 create_buffers(N) ->
 
-    glCreateBuffers_raw(N).
+    ?CALL_RAW_FUNC(glCreateBuffers_raw(N)).
 
 -doc """
 Set front and back stencil test actions.
@@ -2542,7 +2652,7 @@ stencil_op(Fail, ZFail, ZPass) ->
         incr_wrap -> ?GL_INCR_WRAP
     end,
 
-    glStencilOp_raw(NewFail, NewZFail, NewZPass).
+    ?CALL_RAW_FUNC(glStencilOp_raw(NewFail, NewZFail, NewZPass)).
 
 -doc """
 Determine if a name corresponds to a renderbuffer object.
@@ -2558,7 +2668,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec is_renderbuffer(Buffer :: render_buffer()) -> {ok, IsBuffer :: boolean()} | {error, atom()}.
 is_renderbuffer(Buffer) ->
 
-    glIsRenderbuffer_raw(Buffer).
+    ?CALL_RAW_FUNC(glIsRenderbuffer_raw(Buffer)).
 
 -doc """
 Force execution of GL commands in finite time.
@@ -2574,7 +2684,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec flush() -> ok | {error, atom()}.
 flush() ->
 
-    glFlush_raw().
+    ?CALL_RAW_FUNC(glFlush_raw()).
 
 -doc """
 Determine if a name corresponds to a query object.
@@ -2590,7 +2700,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec is_query(Query :: query()) -> {ok, IsQuery :: boolean()} | {error, atom()}.
 is_query(Query) ->
 
-    glIsQuery_raw(Query).
+    ?CALL_RAW_FUNC(glIsQuery_raw(Query)).
 
 -doc """
 Determine if a name corresponds to a transform feedback object.
@@ -2606,7 +2716,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec is_transform_feedback(Feedback :: transform_feedback()) -> {ok, IsFeedback :: boolean()} | {error, atom()}.
 is_transform_feedback(Feedback) ->
 
-    glIsTransformFeedback_raw(Feedback).
+    ?CALL_RAW_FUNC(glIsTransformFeedback_raw(Feedback)).
 
 -doc """
 Select a color buffer source for pixels.
@@ -2649,7 +2759,172 @@ read_buffer(Source) ->
         color_attachment2 -> ?GL_COLOR_ATTACHMENT2
     end,
 
-    glReadBuffer_raw(NewSource).
+    ?CALL_RAW_FUNC(glReadBuffer_raw(NewSource)).
+
+-type uniform_value() ::
+    vector1(float()) |
+    vector2(float()) |
+    vector3(float()) |
+    vector4(float()) |
+    vector1(int()) |
+    vector2(int()) |
+    vector3(int()) |
+    vector4(int()) |
+    vector1(uint()) |
+    vector2(uint()) |
+    vector3(uint()) |
+    vector4(uint()) |
+    vector1(double()) |
+    vector2(double()) |
+    vector3(double()) |
+    vector4(double())
+.
+
+-doc """
+To be written.
+
+It implements the following OpenGL commands:
+
+- `glUniform4d`
+- `glUniform3d`
+- `glUniform2d`
+- `glUniform1d`
+- `glUniform4ui`
+- `glUniform3ui`
+- `glUniform2ui`
+- `glUniform1ui`
+- `glUniform4i`
+- `glUniform3i`
+- `glUniform2i`
+- `glUniform1i`
+- `glUniform4f`
+- `glUniform3f`
+- `glUniform2f`
+- `glUniform1f`
+
+```
+gl:foobar(abc, xyz).
+```
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glUniform) for more information.
+""".
+-spec uniform(
+    Type :: f | i | d | ui,
+    Location :: gl:int(),
+    Value :: uniform_value()
+) -> ok | {error, atom()}.
+uniform(d, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 4 
+->
+    [V1, V2, V3, V4] = ?GL_PACK_VECTOR_4(Value),
+
+    ?CALL_RAW_FUNC(glUniform4d_raw(Location, V1, V2, V3, V4));
+uniform(d, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 3 
+->
+    [V1, V2, V3] = ?GL_PACK_VECTOR_3(Value),
+
+    ?CALL_RAW_FUNC(glUniform3d_raw(Location, V1, V2, V3));
+uniform(d, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 2 
+->
+    [V1, V2] = ?GL_PACK_VECTOR_2(Value),
+
+    ?CALL_RAW_FUNC(glUniform2d_raw(Location, V1, V2));
+uniform(d, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 1 
+->
+    [V1] = ?GL_PACK_VECTOR_1(Value),
+
+    ?CALL_RAW_FUNC(glUniform1d_raw(Location, V1));
+uniform(ui, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 4 
+->
+    [V1, V2, V3, V4] = ?GL_PACK_VECTOR_4(Value),
+
+    ?CALL_RAW_FUNC(glUniform4ui_raw(Location, V1, V2, V3, V4));
+uniform(ui, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 3 
+->
+    [V1, V2, V3] = ?GL_PACK_VECTOR_3(Value),
+
+    ?CALL_RAW_FUNC(glUniform3ui_raw(Location, V1, V2, V3));
+uniform(ui, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 2 
+->
+    [V1, V2] = ?GL_PACK_VECTOR_2(Value),
+
+    ?CALL_RAW_FUNC(glUniform2ui_raw(Location, V1, V2));
+uniform(ui, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 1 
+->
+    [V1] = ?GL_PACK_VECTOR_1(Value),
+
+    ?CALL_RAW_FUNC(glUniform1ui_raw(Location, V1));
+uniform(i, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 4 
+->
+    [V1, V2, V3, V4] = ?GL_PACK_VECTOR_4(Value),
+
+    ?CALL_RAW_FUNC(glUniform4i_raw(Location, V1, V2, V3, V4));
+uniform(i, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 3 
+->
+    [V1, V2, V3] = ?GL_PACK_VECTOR_3(Value),
+
+    ?CALL_RAW_FUNC(glUniform3i_raw(Location, V1, V2, V3));
+uniform(i, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 2 
+->
+    [V1, V2] = ?GL_PACK_VECTOR_2(Value),
+
+    ?CALL_RAW_FUNC(glUniform2i_raw(Location, V1, V2));
+uniform(i, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 1 
+->
+    [V1] = ?GL_PACK_VECTOR_1(Value),
+
+    ?CALL_RAW_FUNC(glUniform1i_raw(Location, V1));
+uniform(f, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 4 
+->
+    [V1, V2, V3, V4] = ?GL_PACK_VECTOR_4(Value),
+
+    ?CALL_RAW_FUNC(glUniform4f_raw(Location, V1, V2, V3, V4));
+uniform(f, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 3 
+->
+    [V1, V2, V3] = ?GL_PACK_VECTOR_3(Value),
+
+    ?CALL_RAW_FUNC(glUniform3f_raw(Location, V1, V2, V3));
+uniform(f, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 2 
+->
+    [V1, V2] = ?GL_PACK_VECTOR_2(Value),
+
+    ?CALL_RAW_FUNC(glUniform2f_raw(Location, V1, V2));
+uniform(f, Location, Value) when 
+    is_tuple(Value) andalso
+    tuple_size(Value) =:= 1 
+->
+    [V1] = ?GL_PACK_VECTOR_1(Value),
+
+    ?CALL_RAW_FUNC(glUniform1f_raw(Location, V1)).
 
 -doc """
 Delete transform feedback objects.
@@ -2668,7 +2943,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 delete_transform_feedbacks(N, Feedbacks) ->
     NewFeedbacks = << <<ID:32/native>> || ID <- Feedbacks >>,
-    glDeleteTransformFeedbacks_raw(N, NewFeedbacks).
+    ?CALL_RAW_FUNC(glDeleteTransformFeedbacks_raw(N, NewFeedbacks)).
 
 -doc """
 Creates a shader object.
@@ -2692,7 +2967,49 @@ create_shader(Type) ->
         tess_control_shader -> ?GL_TESS_CONTROL_SHADER
     end,
 
-    glCreateShader_raw(NewType).
+    ?CALL_RAW_FUNC(glCreateShader_raw(NewType)).
+
+-type get_uniform_value() ::
+    [float()] |
+    [int()] |
+    [uint()] |
+    [double()]
+.
+
+-doc """
+Returns the value of a uniform variable.
+
+It implements the following OpenGL commands:
+
+- `glGetUniformdv`
+- `glGetUniformuiv`
+- `glGetUniformiv`
+- `glGetUniformfv`
+
+```
+gl:foobar(abc, xyz).
+```
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glGetUniform) for more information.
+""".
+-spec get_uniform(
+    Type :: f | i | d | ui,
+    Program :: program(),
+    Location :: gl:int(),
+    N :: pos_integer()
+) -> {ok, Params :: [gl_x]} | {error, atom()}.
+get_uniform(d, Program, Location, N) ->
+
+    ?CALL_RAW_FUNC(glGetUniformdv_raw(Program, Location, N));
+get_uniform(ui, Program, Location, N) ->
+
+    ?CALL_RAW_FUNC(glGetUniformuiv_raw(Program, Location, N));
+get_uniform(i, Program, Location, N) ->
+
+    ?CALL_RAW_FUNC(glGetUniformiv_raw(Program, Location, N));
+get_uniform(f, Program, Location, N) ->
+
+    ?CALL_RAW_FUNC(glGetUniformfv_raw(Program, Location, N)).
 
 -doc """
 Define an array of generic vertex attribute data.
@@ -2730,7 +3047,7 @@ vertex_attrib_pointer(Index, Size, Type, Normalized, Stride, Pointer) ->
         half_float -> ?GL_HALF_FLOAT
     end,
 
-    glVertexAttribPointer_raw(Index, Size, NewType, Normalized, Stride, Pointer).
+    ?CALL_RAW_FUNC(glVertexAttribPointer_raw(Index, Size, NewType, Normalized, Stride, Pointer)).
 
 -type texture_parameter_i_value() ::
     [int()] |
@@ -2788,7 +3105,7 @@ texture_parameter_i(ui, Texture, ParamName, Param) when is_list(Param) ->
         texture_swizzle_a -> ?GL_TEXTURE_SWIZZLE_A
     end,
 
-    glTextureParameterIuiv_raw(Texture, NewParamName, Param);
+    ?CALL_RAW_FUNC(glTextureParameterIuiv_raw(Texture, NewParamName, Param));
 texture_parameter_i(i, Texture, ParamName, Param) when is_list(Param) ->
     NewParamName = case ParamName of
         texture_width -> ?GL_TEXTURE_WIDTH;
@@ -2820,7 +3137,7 @@ texture_parameter_i(i, Texture, ParamName, Param) when is_list(Param) ->
         texture_swizzle_a -> ?GL_TEXTURE_SWIZZLE_A
     end,
 
-    glTextureParameterIiv_raw(Texture, NewParamName, Param).
+    ?CALL_RAW_FUNC(glTextureParameterIiv_raw(Texture, NewParamName, Param)).
 
 -doc """
 XXX: To be written.
@@ -3082,7 +3399,7 @@ get_integer64(PName, Data) ->
         max_varying_vectors -> ?GL_MAX_VARYING_VECTORS
     end,
 
-    glGetInteger64v_raw(NewPName, Data).
+    ?CALL_RAW_FUNC(glGetInteger64v_raw(NewPName, Data)).
 
 -type get_sampler_parameter_i_value() ::
     [int()] |
@@ -3120,7 +3437,7 @@ get_sampler_parameter_i(ui, Sampler, ParamName, N) ->
         texture_wrap_t -> ?GL_TEXTURE_WRAP_T
     end,
 
-    glGetSamplerParameterIuiv_raw(Sampler, NewParamName, N);
+    ?CALL_RAW_FUNC(glGetSamplerParameterIuiv_raw(Sampler, NewParamName, N));
 get_sampler_parameter_i(i, Sampler, ParamName, N) ->
     NewParamName = case ParamName of
         texture_min_filter -> ?GL_TEXTURE_MIN_FILTER;
@@ -3132,7 +3449,7 @@ get_sampler_parameter_i(i, Sampler, ParamName, N) ->
         texture_wrap_t -> ?GL_TEXTURE_WRAP_T
     end,
 
-    glGetSamplerParameterIiv_raw(Sampler, NewParamName, N).
+    ?CALL_RAW_FUNC(glGetSamplerParameterIiv_raw(Sampler, NewParamName, N)).
 
 -doc """
 Draw multiple instances of a range of elements.
@@ -3168,7 +3485,7 @@ draw_arrays_instanced(Mode, First, Count, InstanceCount) ->
         line_strip_adjacency -> ?GL_LINE_STRIP_ADJACENCY
     end,
 
-    glDrawArraysInstanced_raw(NewMode, First, Count, InstanceCount).
+    ?CALL_RAW_FUNC(glDrawArraysInstanced_raw(NewMode, First, Count, InstanceCount)).
 
 -doc """
 Updates a subset of a buffer object's data store.
@@ -3206,7 +3523,7 @@ buffer_sub_data(Target, Offset, Size, Data) ->
         parameter_buffer -> ?GL_PARAMETER_BUFFER
     end,
 
-    glBufferSubData_raw(NewTarget, Offset, Size, Data).
+    ?CALL_RAW_FUNC(glBufferSubData_raw(NewTarget, Offset, Size, Data)).
 
 -doc """
 Delete framebuffer objects.
@@ -3225,7 +3542,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 delete_framebuffers(N, Buffers) ->
     NewBuffers = << <<ID:32/native>> || ID <- Buffers >>,
-    glDeleteFramebuffers_raw(N, NewBuffers).
+    ?CALL_RAW_FUNC(glDeleteFramebuffers_raw(N, NewBuffers)).
 
 -doc """
 Set the scale and units used to calculate depth values.
@@ -3244,7 +3561,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 polygon_offset(Factor, Units) ->
 
-    glPolygonOffset_raw(Factor, Units).
+    ?CALL_RAW_FUNC(glPolygonOffset_raw(Factor, Units)).
 
 -doc """
 XXX: To be written.
@@ -3260,7 +3577,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec end_transform_feedback() -> ok | {error, atom()}.
 end_transform_feedback() ->
 
-    glEndTransformFeedback_raw().
+    ?CALL_RAW_FUNC(glEndTransformFeedback_raw()).
 
 -doc """
 Control the front and back writing of individual bits in the stencil planes.
@@ -3276,7 +3593,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec stencil_mask(Mask :: gl:uint()) -> ok | {error, atom()}.
 stencil_mask(Mask) ->
 
-    glStencilMask_raw(Mask).
+    ?CALL_RAW_FUNC(glStencilMask_raw(Mask)).
 
 -doc """
 Specify whether data read via.
@@ -3303,7 +3620,7 @@ clamp_color(Target, Clamp) ->
         clamp_read_color -> ?GL_CLAMP_READ_COLOR
     end,
 
-    glClampColor_raw(NewTarget, NewClamp).
+    ?CALL_RAW_FUNC(glClampColor_raw(NewTarget, NewClamp)).
 
 -doc """
 Copy all or part of the data store of a buffer object to the data store of another buffer object.
@@ -3363,7 +3680,7 @@ copy_buffer_sub_data(ReadTarget, WriteTarget, ReadOffset, WriteOffset, Size) ->
         pixel_unpack_buffer -> ?GL_PIXEL_UNPACK_BUFFER
     end,
 
-    glCopyBufferSubData_raw(NewReadTarget, NewWriteTarget, ReadOffset, WriteOffset, Size).
+    ?CALL_RAW_FUNC(glCopyBufferSubData_raw(NewReadTarget, NewWriteTarget, ReadOffset, WriteOffset, Size)).
 
 -doc """
 XXX: To be written.
@@ -3379,7 +3696,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec disable_vertex_attrib_array(Index :: gl:uint()) -> ok | {error, atom()}.
 disable_vertex_attrib_array(Index) ->
 
-    glDisableVertexAttribArray_raw(Index).
+    ?CALL_RAW_FUNC(glDisableVertexAttribArray_raw(Index)).
 
 -doc """
 Create query objects.
@@ -3410,7 +3727,7 @@ create_queries(Target, N) ->
         transform_feedback_overflow -> ?GL_TRANSFORM_FEEDBACK_OVERFLOW
     end,
 
-    glCreateQueries_raw(NewTarget, N).
+    ?CALL_RAW_FUNC(glCreateQueries_raw(NewTarget, N)).
 
 -doc """
 Specify the clear value for the depth buffer.
@@ -3426,7 +3743,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec clear_depth(Depth :: gl:double()) -> ok | {error, atom()}.
 clear_depth(Depth) ->
 
-    glClearDepth_raw(Depth).
+    ?CALL_RAW_FUNC(glClearDepth_raw(Depth)).
 
 -doc """
 Links a program object.
@@ -3442,7 +3759,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec link_program(Program :: program()) -> ok | {error, atom()}.
 link_program(Program) ->
 
-    glLinkProgram_raw(Program).
+    ?CALL_RAW_FUNC(glLinkProgram_raw(Program)).
 
 -doc """
 Compiles a shader object.
@@ -3458,7 +3775,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec compile_shader(Shader :: shader()) -> ok | {error, atom()}.
 compile_shader(Shader) ->
 
-    glCompileShader_raw(Shader).
+    ?CALL_RAW_FUNC(glCompileShader_raw(Shader)).
 
 -doc """
 Detaches a shader object from a program object to which it is attached.
@@ -3477,7 +3794,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 detach_shader(Program, Shader) ->
 
-    glDetachShader_raw(Program, Shader).
+    ?CALL_RAW_FUNC(glDetachShader_raw(Program, Shader)).
 
 -doc """
 XXX: To be written.
@@ -3739,7 +4056,7 @@ get_double(Name, Data) ->
         max_varying_vectors -> ?GL_MAX_VARYING_VECTORS
     end,
 
-    glGetDoublev_raw(NewName, Data).
+    ?CALL_RAW_FUNC(glGetDoublev_raw(NewName, Data)).
 
 -type get_sampler_parameter_value() ::
     [int()] |
@@ -3775,7 +4092,7 @@ get_sampler_parameter(f, Sampler, ParamName, N) ->
         texture_min_lod -> ?GL_TEXTURE_MIN_LOD
     end,
 
-    glGetSamplerParameterfv_raw(Sampler, NewParamName, N);
+    ?CALL_RAW_FUNC(glGetSamplerParameterfv_raw(Sampler, NewParamName, N));
 get_sampler_parameter(i, Sampler, ParamName, N) ->
     NewParamName = case ParamName of
         texture_lod_bias -> ?GL_TEXTURE_LOD_BIAS;
@@ -3785,7 +4102,7 @@ get_sampler_parameter(i, Sampler, ParamName, N) ->
         texture_min_lod -> ?GL_TEXTURE_MIN_LOD
     end,
 
-    glGetSamplerParameteriv_raw(Sampler, NewParamName, N).
+    ?CALL_RAW_FUNC(glGetSamplerParameteriv_raw(Sampler, NewParamName, N)).
 
 -doc """
 Attaches a shader object to a program object.
@@ -3804,7 +4121,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 attach_shader(Program, Shader) ->
 
-    glAttachShader_raw(Program, Shader).
+    ?CALL_RAW_FUNC(glAttachShader_raw(Program, Shader)).
 
 -type get_tex_parameter_i_value() ::
     [int()] |
@@ -3893,7 +4210,7 @@ get_tex_parameter_i(ui, Target, ParamName, N) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glGetTexParameterIuiv_raw(NewTarget, NewParamName, N);
+    ?CALL_RAW_FUNC(glGetTexParameterIuiv_raw(NewTarget, NewParamName, N));
 get_tex_parameter_i(i, Target, ParamName, N) ->
     NewParamName = case ParamName of
         texture_width -> ?GL_TEXTURE_WIDTH;
@@ -3955,7 +4272,7 @@ get_tex_parameter_i(i, Target, ParamName, N) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glGetTexParameterIiv_raw(NewTarget, NewParamName, N).
+    ?CALL_RAW_FUNC(glGetTexParameterIiv_raw(NewTarget, NewParamName, N)).
 
 -doc """
 Generate mipmaps for a specified texture object.
@@ -4001,7 +4318,7 @@ generate_mipmap(Target) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glGenerateMipmap_raw(NewTarget).
+    ?CALL_RAW_FUNC(glGenerateMipmap_raw(NewTarget)).
 
 -doc """
 Create vertex array objects.
@@ -4017,7 +4334,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec create_vertex_arrays(N :: pos_integer()) -> {ok, Arrays :: [vertex_array()]} | {error, atom()}.
 create_vertex_arrays(N) ->
 
-    glCreateVertexArrays_raw(N).
+    ?CALL_RAW_FUNC(glCreateVertexArrays_raw(N)).
 
 -type get_texture_parameter_value() ::
     [float()] |
@@ -4071,7 +4388,7 @@ get_texture_parameter(i, Texture, ParamName, N) ->
         texture_swizzle_a -> ?GL_TEXTURE_SWIZZLE_A
     end,
 
-    glGetTextureParameteriv_raw(Texture, NewParamName, N);
+    ?CALL_RAW_FUNC(glGetTextureParameteriv_raw(Texture, NewParamName, N));
 get_texture_parameter(f, Texture, ParamName, N) ->
     NewParamName = case ParamName of
         texture_width -> ?GL_TEXTURE_WIDTH;
@@ -4103,7 +4420,7 @@ get_texture_parameter(f, Texture, ParamName, N) ->
         texture_swizzle_a -> ?GL_TEXTURE_SWIZZLE_A
     end,
 
-    glGetTextureParameterfv_raw(Texture, NewParamName, N).
+    ?CALL_RAW_FUNC(glGetTextureParameterfv_raw(Texture, NewParamName, N)).
 
 -doc """
 Determines if a name corresponds to a program object.
@@ -4119,7 +4436,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec is_program(Program :: program()) -> {ok, IsProgram :: boolean()} | {error, atom()}.
 is_program(Program) ->
 
-    glIsProgram_raw(Program).
+    ?CALL_RAW_FUNC(glIsProgram_raw(Program)).
 
 -doc """
 XXX: To be written.
@@ -4180,7 +4497,7 @@ disable(Capability, Index) ->
         polygon_offset_fill -> ?GL_POLYGON_OFFSET_FILL
     end,
 
-    glDisablei_raw(NewCapability, Index).
+    ?CALL_RAW_FUNC(glDisablei_raw(NewCapability, Index)).
 
 -doc """
 XXX: To be written.
@@ -4443,7 +4760,7 @@ get_double(Target, Index, Data) ->
         max_varying_vectors -> ?GL_MAX_VARYING_VECTORS
     end,
 
-    glGetDoublei_v_raw(NewTarget, Index, Data).
+    ?CALL_RAW_FUNC(glGetDoublei_v_raw(NewTarget, Index, Data)).
 
 -doc """
 Determines if a name corresponds to a shader object.
@@ -4459,7 +4776,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec is_shader(Shader :: shader()) -> {ok, IsShader :: boolean()} | {error, atom()}.
 is_shader(Shader) ->
 
-    glIsShader_raw(Shader).
+    ?CALL_RAW_FUNC(glIsShader_raw(Shader)).
 
 -doc """
 Generate texture names.
@@ -4475,7 +4792,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec gen_textures(N :: pos_integer()) -> {ok, Textures :: [texture()]} | {error, atom()}.
 gen_textures(N) ->
 
-    glGenTextures_raw(N).
+    ?CALL_RAW_FUNC(glGenTextures_raw(N)).
 
 -doc """
 XXX: To be written.
@@ -4536,7 +4853,7 @@ enable(Capability, Index) ->
         polygon_offset_fill -> ?GL_POLYGON_OFFSET_FILL
     end,
 
-    glEnablei_raw(NewCapability, Index).
+    ?CALL_RAW_FUNC(glEnablei_raw(NewCapability, Index)).
 
 -doc """
 Generate renderbuffer object names.
@@ -4552,7 +4869,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec gen_renderbuffers(N :: pos_integer()) -> {ok, Buffers :: [render_buffer()]} | {error, atom()}.
 gen_renderbuffers(N) ->
 
-    glGenRenderbuffers_raw(N).
+    ?CALL_RAW_FUNC(glGenRenderbuffers_raw(N)).
 
 -doc """
 Validates a program object.
@@ -4568,7 +4885,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec validate_program(Program :: program()) -> ok | {error, atom()}.
 validate_program(Program) ->
 
-    glValidateProgram_raw(Program).
+    ?CALL_RAW_FUNC(glValidateProgram_raw(Program)).
 
 -doc """
 Copy pixels into a 2D texture image.
@@ -4739,7 +5056,7 @@ copy_tex_image_2d(Target, Level, InternalFormat, X, Y, Width, Height, Border) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glCopyTexImage2D_raw(NewTarget, Level, NewInternalFormat, X, Y, Width, Height, Border).
+    ?CALL_RAW_FUNC(glCopyTexImage2D_raw(NewTarget, Level, NewInternalFormat, X, Y, Width, Height, Border)).
 
 -doc """
 Bind a vertex array object.
@@ -4755,7 +5072,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec bind_vertex_array(Array :: vertex_array()) -> ok | {error, atom()}.
 bind_vertex_array(Array) ->
 
-    glBindVertexArray_raw(Array).
+    ?CALL_RAW_FUNC(glBindVertexArray_raw(Array)).
 
 -type vertex_attrib_i_value() ::
     vector1(int()) |
@@ -4824,7 +5141,7 @@ vertex_attrib_i(us, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Values),
 
-    glVertexAttribI4usv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttribI4usv_raw(Index, NewValues));
 vertex_attrib_i(ub, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -4832,7 +5149,7 @@ vertex_attrib_i(ub, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Values),
 
-    glVertexAttribI4ubv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttribI4ubv_raw(Index, NewValues));
 vertex_attrib_i(s, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -4840,7 +5157,7 @@ vertex_attrib_i(s, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Values),
 
-    glVertexAttribI4sv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttribI4sv_raw(Index, NewValues));
 vertex_attrib_i(b, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -4848,7 +5165,7 @@ vertex_attrib_i(b, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Values),
 
-    glVertexAttribI4bv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttribI4bv_raw(Index, NewValues));
 vertex_attrib_i(ui, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -4856,7 +5173,7 @@ vertex_attrib_i(ui, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Values),
 
-    glVertexAttribI4uiv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttribI4uiv_raw(Index, NewValues));
 vertex_attrib_i(ui, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -4864,7 +5181,7 @@ vertex_attrib_i(ui, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_3(Matrix) end, [], Values),
 
-    glVertexAttribI3uiv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttribI3uiv_raw(Index, NewValues));
 vertex_attrib_i(ui, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -4872,7 +5189,7 @@ vertex_attrib_i(ui, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_2(Matrix) end, [], Values),
 
-    glVertexAttribI2uiv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttribI2uiv_raw(Index, NewValues));
 vertex_attrib_i(ui, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -4880,7 +5197,7 @@ vertex_attrib_i(ui, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_1(Matrix) end, [], Values),
 
-    glVertexAttribI1uiv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttribI1uiv_raw(Index, NewValues));
 vertex_attrib_i(i, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -4888,7 +5205,7 @@ vertex_attrib_i(i, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Values),
 
-    glVertexAttribI4iv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttribI4iv_raw(Index, NewValues));
 vertex_attrib_i(i, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -4896,7 +5213,7 @@ vertex_attrib_i(i, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_3(Matrix) end, [], Values),
 
-    glVertexAttribI3iv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttribI3iv_raw(Index, NewValues));
 vertex_attrib_i(i, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -4904,7 +5221,7 @@ vertex_attrib_i(i, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_2(Matrix) end, [], Values),
 
-    glVertexAttribI2iv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttribI2iv_raw(Index, NewValues));
 vertex_attrib_i(i, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -4912,63 +5229,63 @@ vertex_attrib_i(i, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_1(Matrix) end, [], Values),
 
-    glVertexAttribI1iv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttribI1iv_raw(Index, NewValues));
 vertex_attrib_i(ui, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 4 
 ->
     [V1, V2, V3, V4] = ?GL_PACK_VECTOR_4(Values),
 
-    glVertexAttribI4ui_raw(Index, V1, V2, V3, V4);
+    ?CALL_RAW_FUNC(glVertexAttribI4ui_raw(Index, V1, V2, V3, V4));
 vertex_attrib_i(ui, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 3 
 ->
     [V1, V2, V3] = ?GL_PACK_VECTOR_3(Values),
 
-    glVertexAttribI3ui_raw(Index, V1, V2, V3);
+    ?CALL_RAW_FUNC(glVertexAttribI3ui_raw(Index, V1, V2, V3));
 vertex_attrib_i(ui, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 2 
 ->
     [V1, V2] = ?GL_PACK_VECTOR_2(Values),
 
-    glVertexAttribI2ui_raw(Index, V1, V2);
+    ?CALL_RAW_FUNC(glVertexAttribI2ui_raw(Index, V1, V2));
 vertex_attrib_i(ui, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 1 
 ->
     [V1] = ?GL_PACK_VECTOR_1(Values),
 
-    glVertexAttribI1ui_raw(Index, V1);
+    ?CALL_RAW_FUNC(glVertexAttribI1ui_raw(Index, V1));
 vertex_attrib_i(i, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 4 
 ->
     [V1, V2, V3, V4] = ?GL_PACK_VECTOR_4(Values),
 
-    glVertexAttribI4i_raw(Index, V1, V2, V3, V4);
+    ?CALL_RAW_FUNC(glVertexAttribI4i_raw(Index, V1, V2, V3, V4));
 vertex_attrib_i(i, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 3 
 ->
     [V1, V2, V3] = ?GL_PACK_VECTOR_3(Values),
 
-    glVertexAttribI3i_raw(Index, V1, V2, V3);
+    ?CALL_RAW_FUNC(glVertexAttribI3i_raw(Index, V1, V2, V3));
 vertex_attrib_i(i, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 2 
 ->
     [V1, V2] = ?GL_PACK_VECTOR_2(Values),
 
-    glVertexAttribI2i_raw(Index, V1, V2);
+    ?CALL_RAW_FUNC(glVertexAttribI2i_raw(Index, V1, V2));
 vertex_attrib_i(i, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 1 
 ->
     [V1] = ?GL_PACK_VECTOR_1(Values),
 
-    glVertexAttribI1i_raw(Index, V1).
+    ?CALL_RAW_FUNC(glVertexAttribI1i_raw(Index, V1)).
 
 -doc """
 Copy a block of pixels from one framebuffer object to another.
@@ -5013,7 +5330,7 @@ blit_framebuffer(SrcX0, SrcY0, SrcX1, SrcY1, DstX0, DstY0, DstX1, DstY1, Mask, F
         end,
         L bor R
     end, 16#00, Mask),
-    glBlitFramebuffer_raw(SrcX0, SrcY0, SrcX1, SrcY1, DstX0, DstY0, DstX1, DstY1, NewMask, NewFilter).
+    ?CALL_RAW_FUNC(glBlitFramebuffer_raw(SrcX0, SrcY0, SrcX1, SrcY1, DstX0, DstY0, DstX1, DstY1, NewMask, NewFilter)).
 
 -doc """
 Control the front and/or back writing of individual bits in the stencil planes.
@@ -5037,7 +5354,7 @@ stencil_mask_separate(Face, Mask) ->
         front -> ?GL_FRONT
     end,
 
-    glStencilMaskSeparate_raw(NewFace, Mask).
+    ?CALL_RAW_FUNC(glStencilMaskSeparate_raw(NewFace, Mask)).
 
 -doc """
 Define the scissor box.
@@ -5058,7 +5375,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 scissor(X, Y, Width, Height) ->
 
-    glScissor_raw(X, Y, Width, Height).
+    ?CALL_RAW_FUNC(glScissor_raw(X, Y, Width, Height)).
 
 -doc """
 Establish the data storage, format, dimensions, and number of samples of a multisample texture's image.
@@ -5279,7 +5596,23 @@ tex_image_2d(Target, Level, InternalFormat, Width, Height, Border, Format, Type,
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glTexImage2D_raw(NewTarget, Level, NewInternalFormat, Width, Height, Border, NewFormat, NewType, Pixels).
+    ?CALL_RAW_FUNC(glTexImage2D_raw(NewTarget, Level, NewInternalFormat, Width, Height, Border, NewFormat, NewType, Pixels)).
+
+-doc """
+Return error information.
+
+It implements the `glGetError` function
+
+```
+{ok, out_of_memory} = gl:get_error().
+```
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glGetError) for more information.
+""".
+-spec get_error() -> {ok, Code :: error_code()} | {error, atom()}.
+get_error() ->
+
+    ?CALL_RAW_FUNC(glGetError_raw()).
 
 -doc """
 Determine if a name corresponds to a vertex array object.
@@ -5295,7 +5628,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec is_vertex_array(Array :: vertex_array()) -> {ok, IsArray :: boolean()} | {error, atom()}.
 is_vertex_array(Array) ->
 
-    glIsVertexArray_raw(Array).
+    ?CALL_RAW_FUNC(glIsVertexArray_raw(Array)).
 
 -doc """
 Create texture objects.
@@ -5344,7 +5677,7 @@ create_textures(Target, N) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glCreateTextures_raw(NewTarget, N).
+    ?CALL_RAW_FUNC(glCreateTextures_raw(NewTarget, N)).
 
 -doc """
 Specify the diameter of rasterized points.
@@ -5360,7 +5693,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec point_size(Size :: gl:float()) -> ok | {error, atom()}.
 point_size(Size) ->
 
-    glPointSize_raw(Size).
+    ?CALL_RAW_FUNC(glPointSize_raw(Size)).
 
 -doc """
 Bind a named texture to a texturing target.
@@ -5409,7 +5742,7 @@ bind_texture(Target, Texture) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glBindTexture_raw(NewTarget, Texture).
+    ?CALL_RAW_FUNC(glBindTexture_raw(NewTarget, Texture)).
 
 -doc """
 Deletes a shader object.
@@ -5425,7 +5758,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec delete_shader(Shader :: shader()) -> ok | {error, atom()}.
 delete_shader(Shader) ->
 
-    glDeleteShader_raw(Shader).
+    ?CALL_RAW_FUNC(glDeleteShader_raw(Shader)).
 
 -doc """
 Specify mapping of depth values from normalized device coordinates to window coordinates.
@@ -5444,7 +5777,189 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 depth_range(Near, Far) ->
 
-    glDepthRange_raw(Near, Far).
+    ?CALL_RAW_FUNC(glDepthRange_raw(Near, Far)).
+
+-type uniform_value() ::
+    [vector1(float())] |
+    [vector2(float())] |
+    [vector3(float())] |
+    [vector4(float())] |
+    [vector1(int())] |
+    [vector2(int())] |
+    [vector3(int())] |
+    [vector4(int())] |
+    [vector1(uint())] |
+    [vector2(uint())] |
+    [vector3(uint())] |
+    [vector4(uint())] |
+    [vector1(double())] |
+    [vector2(double())] |
+    [vector3(double())] |
+    [vector4(double())]
+.
+
+-doc """
+To be written.
+
+It implements the following OpenGL commands:
+
+- `glUniform4dv`
+- `glUniform3dv`
+- `glUniform2dv`
+- `glUniform1dv`
+- `glUniform4uiv`
+- `glUniform3uiv`
+- `glUniform2uiv`
+- `glUniform1uiv`
+- `glUniform4iv`
+- `glUniform3iv`
+- `glUniform2iv`
+- `glUniform1iv`
+- `glUniform4fv`
+- `glUniform3fv`
+- `glUniform2fv`
+- `glUniform1fv`
+
+```
+gl:foobar(abc, xyz).
+```
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glUniform_v) for more information.
+""".
+-spec uniform(
+    Type :: f | i | d | ui,
+    Location :: gl:int(),
+    Count :: integer(),
+    Value :: uniform_value()
+) -> ok | {error, atom()}.
+uniform(d, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 4 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform4dv_raw(Location, Count, NewValue));
+uniform(d, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 3 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_3(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform3dv_raw(Location, Count, NewValue));
+uniform(d, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 2 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_2(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform2dv_raw(Location, Count, NewValue));
+uniform(d, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 1 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_1(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform1dv_raw(Location, Count, NewValue));
+uniform(ui, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 4 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform4uiv_raw(Location, Count, NewValue));
+uniform(ui, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 3 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_3(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform3uiv_raw(Location, Count, NewValue));
+uniform(ui, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 2 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_2(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform2uiv_raw(Location, Count, NewValue));
+uniform(ui, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 1 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_1(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform1uiv_raw(Location, Count, NewValue));
+uniform(i, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 4 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform4iv_raw(Location, Count, NewValue));
+uniform(i, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 3 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_3(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform3iv_raw(Location, Count, NewValue));
+uniform(i, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 2 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_2(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform2iv_raw(Location, Count, NewValue));
+uniform(i, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 1 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_1(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform1iv_raw(Location, Count, NewValue));
+uniform(f, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 4 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform4fv_raw(Location, Count, NewValue));
+uniform(f, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 3 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_3(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform3fv_raw(Location, Count, NewValue));
+uniform(f, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 2 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_2(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform2fv_raw(Location, Count, NewValue));
+uniform(f, Location, Count, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 1 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_1(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniform1fv_raw(Location, Count, NewValue)).
 
 -type sampler_parameter_value() ::
     int() |
@@ -5484,7 +5999,7 @@ sampler_parameter(f, Sampler, ParamName, Param) when is_list(Param) ->
         texture_min_lod -> ?GL_TEXTURE_MIN_LOD
     end,
 
-    glSamplerParameterfv_raw(Sampler, NewParamName, Param);
+    ?CALL_RAW_FUNC(glSamplerParameterfv_raw(Sampler, NewParamName, Param));
 sampler_parameter(f, Sampler, ParamName, Param) ->
     NewParamName = case ParamName of
         texture_lod_bias -> ?GL_TEXTURE_LOD_BIAS;
@@ -5494,7 +6009,7 @@ sampler_parameter(f, Sampler, ParamName, Param) ->
         texture_min_lod -> ?GL_TEXTURE_MIN_LOD
     end,
 
-    glSamplerParameterf_raw(Sampler, NewParamName, Param);
+    ?CALL_RAW_FUNC(glSamplerParameterf_raw(Sampler, NewParamName, Param));
 sampler_parameter(i, Sampler, ParamName, Param) when is_list(Param) ->
     NewParamName = case ParamName of
         texture_lod_bias -> ?GL_TEXTURE_LOD_BIAS;
@@ -5504,7 +6019,7 @@ sampler_parameter(i, Sampler, ParamName, Param) when is_list(Param) ->
         texture_min_lod -> ?GL_TEXTURE_MIN_LOD
     end,
 
-    glSamplerParameteriv_raw(Sampler, NewParamName, Param);
+    ?CALL_RAW_FUNC(glSamplerParameteriv_raw(Sampler, NewParamName, Param));
 sampler_parameter(i, Sampler, ParamName, Param) ->
     NewParamName = case ParamName of
         texture_lod_bias -> ?GL_TEXTURE_LOD_BIAS;
@@ -5514,7 +6029,7 @@ sampler_parameter(i, Sampler, ParamName, Param) ->
         texture_min_lod -> ?GL_TEXTURE_MIN_LOD
     end,
 
-    glSamplerParameteri_raw(Sampler, NewParamName, Param).
+    ?CALL_RAW_FUNC(glSamplerParameteri_raw(Sampler, NewParamName, Param)).
 
 -doc """
 XXX: To be written.
@@ -5777,7 +6292,7 @@ get_integer(Target, Index, Data) ->
         max_varying_vectors -> ?GL_MAX_VARYING_VECTORS
     end,
 
-    glGetIntegeri_v_raw(NewTarget, Index, Data).
+    ?CALL_RAW_FUNC(glGetIntegeri_v_raw(NewTarget, Index, Data)).
 
 -doc """
 Specify which color buffers are to be drawn into.
@@ -5837,7 +6352,7 @@ draw_buffer(Buffer) ->
         color_attachment2 -> ?GL_COLOR_ATTACHMENT2
     end,
 
-    glDrawBuffer_raw(NewBuffer).
+    ?CALL_RAW_FUNC(glDrawBuffer_raw(NewBuffer)).
 
 -doc """
 Set front and back function and reference value for stencil testing.
@@ -5867,7 +6382,7 @@ stencil_func(Function, Ref, Mask) ->
         less -> ?GL_LESS
     end,
 
-    glStencilFunc_raw(NewFunction, Ref, Mask).
+    ?CALL_RAW_FUNC(glStencilFunc_raw(NewFunction, Ref, Mask)).
 
 -doc """
 Reserve program pipeline object names.
@@ -5883,7 +6398,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec gen_program_pipelines(N :: pos_integer()) -> {ok, Pipelines :: [program_pipeline()]} | {error, atom()}.
 gen_program_pipelines(N) ->
 
-    glGenProgramPipelines_raw(N).
+    ?CALL_RAW_FUNC(glGenProgramPipelines_raw(N)).
 
 -doc """
 Attach a buffer object's data store to a buffer texture object.
@@ -6027,7 +6542,7 @@ tex_buffer(Target, InternalFormat, Buffer) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glTexBuffer_raw(NewTarget, NewInternalFormat, Buffer).
+    ?CALL_RAW_FUNC(glTexBuffer_raw(NewTarget, NewInternalFormat, Buffer)).
 
 -doc """
 Render primitives from array data.
@@ -6062,7 +6577,7 @@ draw_arrays(Mode, First, Count) ->
         line_strip_adjacency -> ?GL_LINE_STRIP_ADJACENCY
     end,
 
-    glDrawArrays_raw(NewMode, First, Count).
+    ?CALL_RAW_FUNC(glDrawArrays_raw(NewMode, First, Count)).
 
 -doc """
 Specify the width of rasterized lines.
@@ -6078,7 +6593,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec line_width(Width :: gl:float()) -> ok | {error, atom()}.
 line_width(Width) ->
 
-    glLineWidth_raw(Width).
+    ?CALL_RAW_FUNC(glLineWidth_raw(Width)).
 
 -doc """
 Enable or disable writing into the depth buffer.
@@ -6094,7 +6609,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec depth_mask(Flag :: boolean()) -> ok | {error, atom()}.
 depth_mask(Flag) ->
 
-    glDepthMask_raw(Flag).
+    ?CALL_RAW_FUNC(glDepthMask_raw(Flag)).
 
 -doc """
 Copy a three-dimensional texture subimage.
@@ -6156,7 +6671,7 @@ copy_tex_sub_image_3d(Target, Level, OffsetX, OffsetY, OffsetZ, X, Y, Width, Hei
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glCopyTexSubImage3D_raw(NewTarget, Level, OffsetX, OffsetY, OffsetZ, X, Y, Width, Height).
+    ?CALL_RAW_FUNC(glCopyTexSubImage3D_raw(NewTarget, Level, OffsetX, OffsetY, OffsetZ, X, Y, Width, Height)).
 
 -doc """
 Set the viewport.
@@ -6177,7 +6692,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 viewport(X, Y, Width, Height) ->
 
-    glViewport_raw(X, Y, Width, Height).
+    ?CALL_RAW_FUNC(glViewport_raw(X, Y, Width, Height)).
 
 -doc """
 Specify a three-dimensional texture image.
@@ -6404,7 +6919,7 @@ tex_image_3d(Target, Level, InternalFormat, Width, Height, Depth, Border, Format
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glTexImage3D_raw(NewTarget, Level, NewInternalFormat, Width, Height, Depth, Border, NewFormat, NewType, Pixels).
+    ?CALL_RAW_FUNC(glTexImage3D_raw(NewTarget, Level, NewInternalFormat, Width, Height, Depth, Border, NewFormat, NewType, Pixels)).
 
 -doc """
 Start conditional rendering.
@@ -6433,7 +6948,7 @@ begin_conditional_render(Query, Mode) ->
         query_wait -> ?GL_QUERY_WAIT
     end,
 
-    glBeginConditionalRender_raw(Query, NewMode).
+    ?CALL_RAW_FUNC(glBeginConditionalRender_raw(Query, NewMode)).
 
 -doc """
 Return a texture image.
@@ -6539,7 +7054,7 @@ get_tex_image(Target, Level, Format, Type, PixelsSize) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glGetTexImage_raw(NewTarget, Level, NewFormat, NewType, PixelsSize).
+    ?CALL_RAW_FUNC(glGetTexImage_raw(NewTarget, Level, NewFormat, NewType, PixelsSize)).
 
 -doc """
 Bind a named buffer object.
@@ -6575,7 +7090,7 @@ bind_buffer(Target, Buffer) ->
         parameter_buffer -> ?GL_PARAMETER_BUFFER
     end,
 
-    glBindBuffer_raw(NewTarget, Buffer).
+    ?CALL_RAW_FUNC(glBindBuffer_raw(NewTarget, Buffer)).
 
 -doc """
 Copy a one-dimensional texture subimage.
@@ -6634,7 +7149,7 @@ copy_tex_sub_image_1d(Target, Level, Offset, X, Y, Width) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glCopyTexSubImage1D_raw(NewTarget, Level, Offset, X, Y, Width).
+    ?CALL_RAW_FUNC(glCopyTexSubImage1D_raw(NewTarget, Level, Offset, X, Y, Width)).
 
 -doc """
 Specify pixel arithmetic.
@@ -6696,7 +7211,7 @@ blend_func(Buffer, SourceFactor, DestinationFactor) ->
         src1_alpha -> ?GL_SRC1_ALPHA
     end,
 
-    glBlendFunci_raw(Buffer, NewSourceFactor, NewDestinationFactor).
+    ?CALL_RAW_FUNC(glBlendFunci_raw(Buffer, NewSourceFactor, NewDestinationFactor)).
 
 -doc """
 Bind an existing texture object to the specified texture unit.
@@ -6715,7 +7230,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 bind_texture_unit(Unit, Texture) ->
 
-    glBindTextureUnit_raw(Unit, Texture).
+    ?CALL_RAW_FUNC(glBindTextureUnit_raw(Unit, Texture)).
 
 -doc """
 Creates and initializes a buffer object's data
@@ -6765,7 +7280,7 @@ buffer_data(Target, Size, Data, Usage) ->
         parameter_buffer -> ?GL_PARAMETER_BUFFER
     end,
 
-    glBufferData_raw(NewTarget, Size, Data, NewUsage).
+    ?CALL_RAW_FUNC(glBufferData_raw(NewTarget, Size, Data, NewUsage)).
 
 -doc """
 Specify multisample coverage parameters.
@@ -6784,7 +7299,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 sample_coverage(Value, Invert) ->
 
-    glSampleCoverage_raw(Value, Invert).
+    ?CALL_RAW_FUNC(glSampleCoverage_raw(Value, Invert)).
 
 -doc """
 Set front and/or back stencil test actions.
@@ -6840,7 +7355,7 @@ stencil_op_separate(Face, StencilFail, DepthPassFail, DepthPassPass) ->
         front -> ?GL_FRONT
     end,
 
-    glStencilOpSeparate_raw(NewFace, NewStencilFail, NewDepthPassFail, NewDepthPassPass).
+    ?CALL_RAW_FUNC(glStencilOpSeparate_raw(NewFace, NewStencilFail, NewDepthPassFail, NewDepthPassPass)).
 
 -doc """
 Returns a parameter from a shader object.
@@ -6870,7 +7385,7 @@ get_shader(i, Shader, PName, N) ->
         info_log_length -> ?GL_INFO_LOG_LENGTH
     end,
 
-    glGetShaderiv_raw(Shader, NewPName, N).
+    ?CALL_RAW_FUNC(glGetShaderiv_raw(Shader, NewPName, N)).
 
 -doc """
 Specify pixel arithmetic.
@@ -6931,7 +7446,7 @@ blend_func(SourceFactor, DestinationFactor) ->
         src1_alpha -> ?GL_SRC1_ALPHA
     end,
 
-    glBlendFunc_raw(NewSourceFactor, NewDestinationFactor).
+    ?CALL_RAW_FUNC(glBlendFunc_raw(NewSourceFactor, NewDestinationFactor)).
 
 -doc """
 Specify implementation-specific hints.
@@ -6962,7 +7477,7 @@ hint(Target, Mode) ->
         line_smooth_hint -> ?GL_LINE_SMOOTH_HINT
     end,
 
-    glHint_raw(NewTarget, NewMode).
+    ?CALL_RAW_FUNC(glHint_raw(NewTarget, NewMode)).
 
 -doc """
 XXX: To be written.
@@ -7224,7 +7739,7 @@ get_boolean(Name, Data) ->
         max_varying_vectors -> ?GL_MAX_VARYING_VECTORS
     end,
 
-    glGetBooleanv_raw(NewName, Data).
+    ?CALL_RAW_FUNC(glGetBooleanv_raw(NewName, Data)).
 
 -doc """
 Start transform feedback operation.
@@ -7255,7 +7770,7 @@ begin_transform_feedback(PrimitiveMode) ->
         line_strip_adjacency -> ?GL_LINE_STRIP_ADJACENCY
     end,
 
-    glBeginTransformFeedback_raw(NewPrimitiveMode).
+    ?CALL_RAW_FUNC(glBeginTransformFeedback_raw(NewPrimitiveMode)).
 
 -doc """
 Set the blend color.
@@ -7276,7 +7791,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 blend_color(Red, Green, Blue, Alpha) ->
 
-    glBlendColor_raw(Red, Green, Blue, Alpha).
+    ?CALL_RAW_FUNC(glBlendColor_raw(Red, Green, Blue, Alpha)).
 
 -doc """
 Determine if a name corresponds to a program pipeline object.
@@ -7292,7 +7807,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec is_program_pipeline(Pipeline :: program_pipeline()) -> {ok, IsPipeline :: boolean()} | {error, atom()}.
 is_program_pipeline(Pipeline) ->
 
-    glIsProgramPipeline_raw(Pipeline).
+    ?CALL_RAW_FUNC(glIsProgramPipeline_raw(Pipeline)).
 
 -doc """
 Delimit the boundaries of a query object.
@@ -7323,7 +7838,7 @@ begin_query(Target, Query) ->
         transform_feedback_overflow -> ?GL_TRANSFORM_FEEDBACK_OVERFLOW
     end,
 
-    glBeginQuery_raw(NewTarget, Query).
+    ?CALL_RAW_FUNC(glBeginQuery_raw(NewTarget, Query)).
 
 -type tex_parameter_i_value() ::
     [int()] |
@@ -7412,7 +7927,7 @@ tex_parameter_i(ui, Target, ParamName, Param) when is_list(Param) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glTexParameterIuiv_raw(NewTarget, NewParamName, Param);
+    ?CALL_RAW_FUNC(glTexParameterIuiv_raw(NewTarget, NewParamName, Param));
 tex_parameter_i(i, Target, ParamName, Param) when is_list(Param) ->
     NewParamName = case ParamName of
         texture_width -> ?GL_TEXTURE_WIDTH;
@@ -7474,7 +7989,7 @@ tex_parameter_i(i, Target, ParamName, Param) when is_list(Param) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glTexParameterIiv_raw(NewTarget, NewParamName, Param).
+    ?CALL_RAW_FUNC(glTexParameterIiv_raw(NewTarget, NewParamName, Param)).
 
 -type pixel_store_value() ::
     float() |
@@ -7520,7 +8035,7 @@ pixel_store(i, Name, Param) ->
         pack_skip_rows -> ?GL_PACK_SKIP_ROWS
     end,
 
-    glPixelStorei_raw(NewName, Param);
+    ?CALL_RAW_FUNC(glPixelStorei_raw(NewName, Param));
 pixel_store(f, Name, Param) ->
     NewName = case Name of
         pack_image_height -> ?GL_PACK_IMAGE_HEIGHT;
@@ -7541,7 +8056,7 @@ pixel_store(f, Name, Param) ->
         pack_skip_rows -> ?GL_PACK_SKIP_ROWS
     end,
 
-    glPixelStoref_raw(NewName, Param).
+    ?CALL_RAW_FUNC(glPixelStoref_raw(NewName, Param)).
 
 -doc """
 XXX: To be written.
@@ -7804,7 +8319,7 @@ get_float(Target, Index, Data) ->
         max_varying_vectors -> ?GL_MAX_VARYING_VECTORS
     end,
 
-    glGetFloati_v_raw(NewTarget, Index, Data).
+    ?CALL_RAW_FUNC(glGetFloati_v_raw(NewTarget, Index, Data)).
 
 -doc """
 XXX: To be written.
@@ -7832,7 +8347,7 @@ end_query(Target) ->
         transform_feedback_overflow -> ?GL_TRANSFORM_FEEDBACK_OVERFLOW
     end,
 
-    glEndQuery_raw(NewTarget).
+    ?CALL_RAW_FUNC(glEndQuery_raw(NewTarget)).
 
 -doc """
 Delete named sampler objects.
@@ -7851,7 +8366,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 delete_samplers(N, Samplers) ->
     NewSamplers = << <<ID:32/native>> || ID <- Samplers >>,
-    glDeleteSamplers_raw(N, NewSamplers).
+    ?CALL_RAW_FUNC(glDeleteSamplers_raw(N, NewSamplers)).
 
 -doc """
 Replaces the source code in a shader object.
@@ -7873,7 +8388,7 @@ shader_source(Shader, Source) ->
         (SourceItem) when is_list(SourceItem) -> list_to_binary(SourceItem);
         (SourceItem) when is_binary(SourceItem) -> SourceItem
     end, Source),
-    glShaderSource_raw(Shader, SourceNew).
+    ?CALL_RAW_FUNC(glShaderSource_raw(Shader, SourceNew)).
 
 -doc """
 Clear buffers to preset values.
@@ -7896,7 +8411,7 @@ clear(Mask) ->
         end,
         L bor R
     end, 16#00, Mask),
-    glClear_raw(NewMask).
+    ?CALL_RAW_FUNC(glClear_raw(NewMask)).
 
 -doc """
 Copy a one-dimensional texture subimage.
@@ -7925,7 +8440,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 copy_texture_sub_image_1d(Texture, Level, Offset, X, Y, Width) ->
 
-    glCopyTextureSubImage1D_raw(Texture, Level, Offset, X, Y, Width).
+    ?CALL_RAW_FUNC(glCopyTextureSubImage1D_raw(Texture, Level, Offset, X, Y, Width)).
 
 -doc """
 Specify a one-dimensional texture image.
@@ -8145,7 +8660,7 @@ tex_image_1d(Target, Level, InternalFormat, Width, Border, Format, Type, Pixels)
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glTexImage1D_raw(NewTarget, Level, NewInternalFormat, Width, Border, NewFormat, NewType, Pixels).
+    ?CALL_RAW_FUNC(glTexImage1D_raw(NewTarget, Level, NewInternalFormat, Width, Border, NewFormat, NewType, Pixels)).
 
 -doc """
 Specifies minimum rate at which sample shading takes place.
@@ -8161,7 +8676,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec min_sample_shading(Value :: gl:float()) -> ok | {error, atom()}.
 min_sample_shading(Value) ->
 
-    glMinSampleShading_raw(Value).
+    ?CALL_RAW_FUNC(glMinSampleShading_raw(Value)).
 
 -type tex_parameter_value() ::
     float() |
@@ -8258,7 +8773,7 @@ tex_parameter(i, Target, ParamName, Param) when is_list(Param) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glTexParameteriv_raw(NewTarget, NewParamName, Param);
+    ?CALL_RAW_FUNC(glTexParameteriv_raw(NewTarget, NewParamName, Param));
 tex_parameter(i, Target, ParamName, Param) ->
     NewParamName = case ParamName of
         texture_width -> ?GL_TEXTURE_WIDTH;
@@ -8320,7 +8835,7 @@ tex_parameter(i, Target, ParamName, Param) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glTexParameteri_raw(NewTarget, NewParamName, Param);
+    ?CALL_RAW_FUNC(glTexParameteri_raw(NewTarget, NewParamName, Param));
 tex_parameter(f, Target, ParamName, Param) when is_list(Param) ->
     NewParamName = case ParamName of
         texture_width -> ?GL_TEXTURE_WIDTH;
@@ -8382,7 +8897,7 @@ tex_parameter(f, Target, ParamName, Param) when is_list(Param) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glTexParameterfv_raw(NewTarget, NewParamName, Param);
+    ?CALL_RAW_FUNC(glTexParameterfv_raw(NewTarget, NewParamName, Param));
 tex_parameter(f, Target, ParamName, Param) ->
     NewParamName = case ParamName of
         texture_width -> ?GL_TEXTURE_WIDTH;
@@ -8444,7 +8959,7 @@ tex_parameter(f, Target, ParamName, Param) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glTexParameterf_raw(NewTarget, NewParamName, Param).
+    ?CALL_RAW_FUNC(glTexParameterf_raw(NewTarget, NewParamName, Param)).
 
 -doc """
 Specify the primitive restart index.
@@ -8460,7 +8975,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec primitive_restart_index(Index :: gl:uint()) -> ok | {error, atom()}.
 primitive_restart_index(Index) ->
 
-    glPrimitiveRestartIndex_raw(Index).
+    ?CALL_RAW_FUNC(glPrimitiveRestartIndex_raw(Index)).
 
 -doc """
 Delete renderbuffer objects.
@@ -8479,7 +8994,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 delete_renderbuffers(N, Buffers) ->
     NewBuffers = << <<ID:32/native>> || ID <- Buffers >>,
-    glDeleteRenderbuffers_raw(N, NewBuffers).
+    ?CALL_RAW_FUNC(glDeleteRenderbuffers_raw(N, NewBuffers)).
 
 -doc """
 Copy a two-dimensional texture subimage.
@@ -8540,7 +9055,7 @@ copy_tex_sub_image_2d(Target, Level, OffsetX, OffsetY, X, Y, Width, Height) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glCopyTexSubImage2D_raw(NewTarget, Level, OffsetX, OffsetY, X, Y, Width, Height).
+    ?CALL_RAW_FUNC(glCopyTexSubImage2D_raw(NewTarget, Level, OffsetX, OffsetY, X, Y, Width, Height)).
 
 -doc """
 Set front and/or back function and reference value for stencil testing.
@@ -8576,7 +9091,7 @@ stencil_func_separate(Face, Function, Ref, Mask) ->
         front -> ?GL_FRONT
     end,
 
-    glStencilFuncSeparate_raw(NewFace, NewFunction, Ref, Mask).
+    ?CALL_RAW_FUNC(glStencilFuncSeparate_raw(NewFace, NewFunction, Ref, Mask)).
 
 -doc """
 XXX: To be written.
@@ -8838,7 +9353,7 @@ get_integer(Name, Data) ->
         max_varying_vectors -> ?GL_MAX_VARYING_VECTORS
     end,
 
-    glGetIntegerv_raw(NewName, Data).
+    ?CALL_RAW_FUNC(glGetIntegerv_raw(NewName, Data)).
 
 -doc """
 Generate vertex array object names.
@@ -8854,7 +9369,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec gen_vertex_arrays(N :: pos_integer()) -> {ok, Arrays :: [vertex_array()]} | {error, atom()}.
 gen_vertex_arrays(N) ->
 
-    glGenVertexArrays_raw(N).
+    ?CALL_RAW_FUNC(glGenVertexArrays_raw(N)).
 
 -doc """
 Specify the value used for depth buffer comparisons.
@@ -8880,7 +9395,7 @@ depth_func(Function) ->
         less -> ?GL_LESS
     end,
 
-    glDepthFunc_raw(NewFunction).
+    ?CALL_RAW_FUNC(glDepthFunc_raw(NewFunction)).
 
 -doc """
 Generate framebuffer object names.
@@ -8896,7 +9411,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec gen_framebuffers(N :: pos_integer()) -> {ok, Buffers :: [frame_buffer()]} | {error, atom()}.
 gen_framebuffers(N) ->
 
-    glGenFramebuffers_raw(N).
+    ?CALL_RAW_FUNC(glGenFramebuffers_raw(N)).
 
 -doc """
 Delete program pipeline objects.
@@ -8915,7 +9430,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 delete_program_pipelines(N, Pipelines) ->
     NewPipelines = << <<ID:32/native>> || ID <- Pipelines >>,
-    glDeleteProgramPipelines_raw(N, NewPipelines).
+    ?CALL_RAW_FUNC(glDeleteProgramPipelines_raw(N, NewPipelines)).
 
 -doc """
 XXX: To be written.
@@ -9177,7 +9692,7 @@ get_float(Name, Data) ->
         max_varying_vectors -> ?GL_MAX_VARYING_VECTORS
     end,
 
-    glGetFloatv_raw(NewName, Data).
+    ?CALL_RAW_FUNC(glGetFloatv_raw(NewName, Data)).
 
 -type vertex_attrib_value() ::
     vector1(double()) |
@@ -9264,7 +9779,7 @@ vertex_attrib(us, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Values),
 
-    glVertexAttrib4usv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib4usv_raw(Index, NewValues));
 vertex_attrib(ui, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9272,7 +9787,7 @@ vertex_attrib(ui, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Values),
 
-    glVertexAttrib4uiv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib4uiv_raw(Index, NewValues));
 vertex_attrib(ub, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9280,7 +9795,7 @@ vertex_attrib(ub, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Values),
 
-    glVertexAttrib4ubv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib4ubv_raw(Index, NewValues));
 vertex_attrib(s, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9288,14 +9803,14 @@ vertex_attrib(s, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Values),
 
-    glVertexAttrib4sv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib4sv_raw(Index, NewValues));
 vertex_attrib(s, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 4 
 ->
     [V1, V2, V3, V4] = ?GL_PACK_VECTOR_4(Values),
 
-    glVertexAttrib4s_raw(Index, V1, V2, V3, V4);
+    ?CALL_RAW_FUNC(glVertexAttrib4s_raw(Index, V1, V2, V3, V4));
 vertex_attrib(i, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9303,7 +9818,7 @@ vertex_attrib(i, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Values),
 
-    glVertexAttrib4iv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib4iv_raw(Index, NewValues));
 vertex_attrib(f, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9311,14 +9826,14 @@ vertex_attrib(f, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Values),
 
-    glVertexAttrib4fv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib4fv_raw(Index, NewValues));
 vertex_attrib(f, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 4 
 ->
     [V1, V2, V3, V4] = ?GL_PACK_VECTOR_4(Values),
 
-    glVertexAttrib4f_raw(Index, V1, V2, V3, V4);
+    ?CALL_RAW_FUNC(glVertexAttrib4f_raw(Index, V1, V2, V3, V4));
 vertex_attrib(d, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9326,14 +9841,14 @@ vertex_attrib(d, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Values),
 
-    glVertexAttrib4dv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib4dv_raw(Index, NewValues));
 vertex_attrib(d, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 4 
 ->
     [V1, V2, V3, V4] = ?GL_PACK_VECTOR_4(Values),
 
-    glVertexAttrib4d_raw(Index, V1, V2, V3, V4);
+    ?CALL_RAW_FUNC(glVertexAttrib4d_raw(Index, V1, V2, V3, V4));
 vertex_attrib(b, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9341,7 +9856,7 @@ vertex_attrib(b, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_4(Matrix) end, [], Values),
 
-    glVertexAttrib4bv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib4bv_raw(Index, NewValues));
 vertex_attrib(s, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9349,14 +9864,14 @@ vertex_attrib(s, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_3(Matrix) end, [], Values),
 
-    glVertexAttrib3sv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib3sv_raw(Index, NewValues));
 vertex_attrib(s, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 3 
 ->
     [V1, V2, V3] = ?GL_PACK_VECTOR_3(Values),
 
-    glVertexAttrib3s_raw(Index, V1, V2, V3);
+    ?CALL_RAW_FUNC(glVertexAttrib3s_raw(Index, V1, V2, V3));
 vertex_attrib(f, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9364,14 +9879,14 @@ vertex_attrib(f, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_3(Matrix) end, [], Values),
 
-    glVertexAttrib3fv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib3fv_raw(Index, NewValues));
 vertex_attrib(f, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 3 
 ->
     [V1, V2, V3] = ?GL_PACK_VECTOR_3(Values),
 
-    glVertexAttrib3f_raw(Index, V1, V2, V3);
+    ?CALL_RAW_FUNC(glVertexAttrib3f_raw(Index, V1, V2, V3));
 vertex_attrib(d, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9379,14 +9894,14 @@ vertex_attrib(d, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_3(Matrix) end, [], Values),
 
-    glVertexAttrib3dv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib3dv_raw(Index, NewValues));
 vertex_attrib(d, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 3 
 ->
     [V1, V2, V3] = ?GL_PACK_VECTOR_3(Values),
 
-    glVertexAttrib3d_raw(Index, V1, V2, V3);
+    ?CALL_RAW_FUNC(glVertexAttrib3d_raw(Index, V1, V2, V3));
 vertex_attrib(s, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9394,14 +9909,14 @@ vertex_attrib(s, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_2(Matrix) end, [], Values),
 
-    glVertexAttrib2sv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib2sv_raw(Index, NewValues));
 vertex_attrib(s, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 2 
 ->
     [V1, V2] = ?GL_PACK_VECTOR_2(Values),
 
-    glVertexAttrib2s_raw(Index, V1, V2);
+    ?CALL_RAW_FUNC(glVertexAttrib2s_raw(Index, V1, V2));
 vertex_attrib(f, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9409,14 +9924,14 @@ vertex_attrib(f, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_2(Matrix) end, [], Values),
 
-    glVertexAttrib2fv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib2fv_raw(Index, NewValues));
 vertex_attrib(f, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 2 
 ->
     [V1, V2] = ?GL_PACK_VECTOR_2(Values),
 
-    glVertexAttrib2f_raw(Index, V1, V2);
+    ?CALL_RAW_FUNC(glVertexAttrib2f_raw(Index, V1, V2));
 vertex_attrib(d, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9424,14 +9939,14 @@ vertex_attrib(d, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_2(Matrix) end, [], Values),
 
-    glVertexAttrib2dv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib2dv_raw(Index, NewValues));
 vertex_attrib(d, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 2 
 ->
     [V1, V2] = ?GL_PACK_VECTOR_2(Values),
 
-    glVertexAttrib2d_raw(Index, V1, V2);
+    ?CALL_RAW_FUNC(glVertexAttrib2d_raw(Index, V1, V2));
 vertex_attrib(s, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9439,14 +9954,14 @@ vertex_attrib(s, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_1(Matrix) end, [], Values),
 
-    glVertexAttrib1sv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib1sv_raw(Index, NewValues));
 vertex_attrib(s, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 1 
 ->
     [V1] = ?GL_PACK_VECTOR_1(Values),
 
-    glVertexAttrib1s_raw(Index, V1);
+    ?CALL_RAW_FUNC(glVertexAttrib1s_raw(Index, V1));
 vertex_attrib(f, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9454,14 +9969,14 @@ vertex_attrib(f, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_1(Matrix) end, [], Values),
 
-    glVertexAttrib1fv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib1fv_raw(Index, NewValues));
 vertex_attrib(f, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 1 
 ->
     [V1] = ?GL_PACK_VECTOR_1(Values),
 
-    glVertexAttrib1f_raw(Index, V1);
+    ?CALL_RAW_FUNC(glVertexAttrib1f_raw(Index, V1));
 vertex_attrib(d, Index, Values) when 
     is_list(Values) andalso
     is_tuple(hd(Values)) andalso
@@ -9469,14 +9984,14 @@ vertex_attrib(d, Index, Values) when
 ->
     NewValues = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_VECTOR_1(Matrix) end, [], Values),
 
-    glVertexAttrib1dv_raw(Index, NewValues);
+    ?CALL_RAW_FUNC(glVertexAttrib1dv_raw(Index, NewValues));
 vertex_attrib(d, Index, Values) when 
     is_tuple(Values) andalso
     tuple_size(Values) =:= 1 
 ->
     [V1] = ?GL_PACK_VECTOR_1(Values),
 
-    glVertexAttrib1d_raw(Index, V1).
+    ?CALL_RAW_FUNC(glVertexAttrib1d_raw(Index, V1)).
 
 -doc """
 Enable and disable writing of frame buffer color components.
@@ -9497,7 +10012,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 color_mask(Red, Green, Blue, Alpha) ->
 
-    glColorMask_raw(Red, Green, Blue, Alpha).
+    ?CALL_RAW_FUNC(glColorMask_raw(Red, Green, Blue, Alpha)).
 
 -doc """
 Returns a subset of a buffer object's data store.
@@ -9534,7 +10049,7 @@ get_buffer_sub_data(Target, Offset, Data) ->
         parameter_buffer -> ?GL_PARAMETER_BUFFER
     end,
 
-    glGetBufferSubData_raw(NewTarget, Offset, Data).
+    ?CALL_RAW_FUNC(glGetBufferSubData_raw(NewTarget, Offset, Data)).
 
 -doc """
 Establish data storage, format, dimensions and sample count of a renderbuffer object's image.
@@ -9673,7 +10188,7 @@ renderbuffer_storage_multisample(Target, Samples, InternalFormat, Width, Height)
         renderbuffer -> ?GL_RENDERBUFFER
     end,
 
-    glRenderbufferStorageMultisample_raw(NewTarget, Samples, NewInternalFormat, Width, Height).
+    ?CALL_RAW_FUNC(glRenderbufferStorageMultisample_raw(NewTarget, Samples, NewInternalFormat, Width, Height)).
 
 -doc """
 Determine if a name corresponds to a texture.
@@ -9689,7 +10204,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec is_texture(Texture :: texture()) -> {ok, IsTexture :: boolean()} | {error, atom()}.
 is_texture(Texture) ->
 
-    glIsTexture_raw(Texture).
+    ?CALL_RAW_FUNC(glIsTexture_raw(Texture)).
 
 -doc """
 Determine if a name corresponds to a framebuffer object.
@@ -9705,7 +10220,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec is_framebuffer(Buffer :: frame_buffer()) -> {ok, IsBuffer :: boolean()} | {error, atom()}.
 is_framebuffer(Buffer) ->
 
-    glIsFramebuffer_raw(Buffer).
+    ?CALL_RAW_FUNC(glIsFramebuffer_raw(Buffer)).
 
 -doc """
 Generate sampler object names.
@@ -9721,7 +10236,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec gen_samplers(N :: pos_integer()) -> {ok, Samplers :: [sampler()]} | {error, atom()}.
 gen_samplers(N) ->
 
-    glGenSamplers_raw(N).
+    ?CALL_RAW_FUNC(glGenSamplers_raw(N)).
 
 -doc """
 Reserve transform feedback object names.
@@ -9737,7 +10252,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec gen_transform_feedbacks(N :: pos_integer()) -> {ok, Feedbacks :: [transform_feedback()]} | {error, atom()}.
 gen_transform_feedbacks(N) ->
 
-    glGenTransformFeedbacks_raw(N).
+    ?CALL_RAW_FUNC(glGenTransformFeedbacks_raw(N)).
 
 -doc """
 Determine if a name corresponds to a sampler object.
@@ -9753,7 +10268,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec is_sampler(Sampler :: sampler()) -> {ok, IsSampler :: boolean()} | {error, atom()}.
 is_sampler(Sampler) ->
 
-    glIsSampler_raw(Sampler).
+    ?CALL_RAW_FUNC(glIsSampler_raw(Sampler)).
 
 -doc """
 Define front- and back-facing polygons.
@@ -9773,7 +10288,7 @@ front_face(Mode) ->
         cw -> ?GL_CW
     end,
 
-    glFrontFace_raw(NewMode).
+    ?CALL_RAW_FUNC(glFrontFace_raw(NewMode)).
 
 -doc """
 Specify the equation used for both the RGB blend equation and the Alpha blend equation.
@@ -9796,7 +10311,7 @@ blend_equation(Mode) ->
         func_add -> ?GL_FUNC_ADD
     end,
 
-    glBlendEquation_raw(NewMode).
+    ?CALL_RAW_FUNC(glBlendEquation_raw(NewMode)).
 
 -doc """
 Return a string describing the current GL connection.
@@ -9819,7 +10334,7 @@ get_string(Name) ->
         version -> ?GL_VERSION
     end,
 
-    glGetString_raw(NewName).
+    ?CALL_RAW_FUNC(glGetString_raw(NewName)).
 
 -doc """
 Specify a logical pixel operation for rendering.
@@ -9855,7 +10370,7 @@ logic_op(OpCode) ->
         xor_ -> ?GL_XOR
     end,
 
-    glLogicOp_raw(NewOpCode).
+    ?CALL_RAW_FUNC(glLogicOp_raw(NewOpCode)).
 
 -doc """
 Returns the information log for a shader object.
@@ -9874,7 +10389,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> {ok, InfoLog :: binary()} | {error, atom()}.
 get_shader_info_log(Shader, InfoLog) ->
 
-    glGetShaderInfoLog_raw(Shader, InfoLog).
+    ?CALL_RAW_FUNC(glGetShaderInfoLog_raw(Shader, InfoLog)).
 
 -doc """
 Generate query object names.
@@ -9890,7 +10405,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec gen_queries(N :: pos_integer()) -> {ok, Queries :: [query()]} | {error, atom()}.
 gen_queries(N) ->
 
-    glGenQueries_raw(N).
+    ?CALL_RAW_FUNC(glGenQueries_raw(N)).
 
 -doc """
 Enable or disable server-side GL capabilities.
@@ -9948,7 +10463,7 @@ enable(Cap) ->
         polygon_offset_fill -> ?GL_POLYGON_OFFSET_FILL
     end,
 
-    glEnable_raw(NewCap).
+    ?CALL_RAW_FUNC(glEnable_raw(NewCap)).
 
 -doc """
 Determine if a name corresponds to a buffer object.
@@ -9964,7 +10479,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec is_buffer(Buffer :: buffer()) -> {ok, IsBuffer :: boolean()} | {error, atom()}.
 is_buffer(Buffer) ->
 
-    glIsBuffer_raw(Buffer).
+    ?CALL_RAW_FUNC(glIsBuffer_raw(Buffer)).
 
 -doc """
 Specify pixel arithmetic for RGB and alpha components separately.
@@ -10074,7 +10589,7 @@ blend_func_separate(SourceRGB, DestinationRGB, SourceAlpha, DestinationAlpha) ->
         src1_alpha -> ?GL_SRC1_ALPHA
     end,
 
-    glBlendFuncSeparate_raw(NewSourceRGB, NewDestinationRGB, NewSourceAlpha, NewDestinationAlpha).
+    ?CALL_RAW_FUNC(glBlendFuncSeparate_raw(NewSourceRGB, NewDestinationRGB, NewSourceAlpha, NewDestinationAlpha)).
 
 -type get_tex_parameter_value() ::
     [float()] |
@@ -10167,7 +10682,7 @@ get_tex_parameter(i, Target, ParamName, N) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glGetTexParameteriv_raw(NewTarget, NewParamName, N);
+    ?CALL_RAW_FUNC(glGetTexParameteriv_raw(NewTarget, NewParamName, N));
 get_tex_parameter(f, Target, ParamName, N) ->
     NewParamName = case ParamName of
         texture_width -> ?GL_TEXTURE_WIDTH;
@@ -10229,7 +10744,7 @@ get_tex_parameter(f, Target, ParamName, N) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glGetTexParameterfv_raw(NewTarget, NewParamName, N).
+    ?CALL_RAW_FUNC(glGetTexParameterfv_raw(NewTarget, NewParamName, N)).
 
 -doc """
 Bind a framebuffer to a framebuffer target.
@@ -10253,7 +10768,7 @@ bind_framebuffer(Target, Buffer) ->
         draw_framebuffer -> ?GL_DRAW_FRAMEBUFFER
     end,
 
-    glBindFramebuffer_raw(NewTarget, Buffer).
+    ?CALL_RAW_FUNC(glBindFramebuffer_raw(NewTarget, Buffer)).
 
 -type sampler_parameter_i_value() ::
     [int()] |
@@ -10291,7 +10806,7 @@ sampler_parameter_i(ui, Sampler, ParamName, Param) when is_list(Param) ->
         texture_wrap_t -> ?GL_TEXTURE_WRAP_T
     end,
 
-    glSamplerParameterIuiv_raw(Sampler, NewParamName, Param);
+    ?CALL_RAW_FUNC(glSamplerParameterIuiv_raw(Sampler, NewParamName, Param));
 sampler_parameter_i(i, Sampler, ParamName, Param) when is_list(Param) ->
     NewParamName = case ParamName of
         texture_min_filter -> ?GL_TEXTURE_MIN_FILTER;
@@ -10303,7 +10818,7 @@ sampler_parameter_i(i, Sampler, ParamName, Param) when is_list(Param) ->
         texture_wrap_t -> ?GL_TEXTURE_WRAP_T
     end,
 
-    glSamplerParameterIiv_raw(Sampler, NewParamName, Param).
+    ?CALL_RAW_FUNC(glSamplerParameterIiv_raw(Sampler, NewParamName, Param)).
 
 -doc """
 Bind a renderbuffer to a renderbuffer target.
@@ -10325,7 +10840,7 @@ bind_renderbuffer(Target, Buffer) ->
         renderbuffer -> ?GL_RENDERBUFFER
     end,
 
-    glBindRenderbuffer_raw(NewTarget, Buffer).
+    ?CALL_RAW_FUNC(glBindRenderbuffer_raw(NewTarget, Buffer)).
 
 -doc """
 Specify clear values for the color buffers.
@@ -10346,7 +10861,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 clear_color(Red, Green, Blue, Alpha) ->
 
-    glClearColor_raw(Red, Green, Blue, Alpha).
+    ?CALL_RAW_FUNC(glClearColor_raw(Red, Green, Blue, Alpha)).
 
 -doc """
 Set the RGB blend equation and the alpha blend equation separately.
@@ -10380,7 +10895,7 @@ blend_equation_separate(Buffer, ModeRGB, ModeAlpha) ->
         func_add -> ?GL_FUNC_ADD
     end,
 
-    glBlendEquationSeparatei_raw(Buffer, NewModeRGB, NewModeAlpha).
+    ?CALL_RAW_FUNC(glBlendEquationSeparatei_raw(Buffer, NewModeRGB, NewModeAlpha)).
 
 -type texture_parameter_value() ::
     float() |
@@ -10442,7 +10957,7 @@ texture_parameter(i, Texture, ParamName, Param) when is_list(Param) ->
         texture_swizzle_a -> ?GL_TEXTURE_SWIZZLE_A
     end,
 
-    glTextureParameteriv_raw(Texture, NewParamName, Param);
+    ?CALL_RAW_FUNC(glTextureParameteriv_raw(Texture, NewParamName, Param));
 texture_parameter(i, Texture, ParamName, Param) ->
     NewParamName = case ParamName of
         texture_width -> ?GL_TEXTURE_WIDTH;
@@ -10474,7 +10989,7 @@ texture_parameter(i, Texture, ParamName, Param) ->
         texture_swizzle_a -> ?GL_TEXTURE_SWIZZLE_A
     end,
 
-    glTextureParameteri_raw(Texture, NewParamName, Param);
+    ?CALL_RAW_FUNC(glTextureParameteri_raw(Texture, NewParamName, Param));
 texture_parameter(f, Texture, ParamName, Param) when is_list(Param) ->
     NewParamName = case ParamName of
         texture_width -> ?GL_TEXTURE_WIDTH;
@@ -10506,7 +11021,7 @@ texture_parameter(f, Texture, ParamName, Param) when is_list(Param) ->
         texture_swizzle_a -> ?GL_TEXTURE_SWIZZLE_A
     end,
 
-    glTextureParameterfv_raw(Texture, NewParamName, Param);
+    ?CALL_RAW_FUNC(glTextureParameterfv_raw(Texture, NewParamName, Param));
 texture_parameter(f, Texture, ParamName, Param) ->
     NewParamName = case ParamName of
         texture_width -> ?GL_TEXTURE_WIDTH;
@@ -10538,7 +11053,7 @@ texture_parameter(f, Texture, ParamName, Param) ->
         texture_swizzle_a -> ?GL_TEXTURE_SWIZZLE_A
     end,
 
-    glTextureParameterf_raw(Texture, NewParamName, Param).
+    ?CALL_RAW_FUNC(glTextureParameterf_raw(Texture, NewParamName, Param)).
 
 -doc """
 Delete named query objects.
@@ -10557,7 +11072,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 delete_queries(N, Queries) ->
     NewQueries = << <<ID:32/native>> || ID <- Queries >>,
-    glDeleteQueries_raw(N, NewQueries).
+    ?CALL_RAW_FUNC(glDeleteQueries_raw(N, NewQueries)).
 
 -doc """
 Attach a level of a texture object as a logical buffer of a framebuffer object.
@@ -10620,7 +11135,7 @@ framebuffer_texture(Target, Attachment, Texture, Level) ->
         draw_framebuffer -> ?GL_DRAW_FRAMEBUFFER
     end,
 
-    glFramebufferTexture_raw(NewTarget, NewAttachment, Texture, Level).
+    ?CALL_RAW_FUNC(glFramebufferTexture_raw(NewTarget, NewAttachment, Texture, Level)).
 
 -doc """
 Delete named textures.
@@ -10639,7 +11154,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 delete_textures(N, Textures) ->
     NewTextures = << <<ID:32/native>> || ID <- Textures >>,
-    glDeleteTextures_raw(N, NewTextures).
+    ?CALL_RAW_FUNC(glDeleteTextures_raw(N, NewTextures)).
 
 -doc """
 Create renderbuffer objects.
@@ -10655,7 +11170,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec create_renderbuffers(N :: pos_integer()) -> {ok, Renderbuffers :: [render_buffer()]} | {error, atom()}.
 create_renderbuffers(N) ->
 
-    glCreateRenderbuffers_raw(N).
+    ?CALL_RAW_FUNC(glCreateRenderbuffers_raw(N)).
 
 -doc """
 Test whether a capability is enabled.
@@ -10713,7 +11228,7 @@ is_enabled(Capability) ->
         polygon_offset_fill -> ?GL_POLYGON_OFFSET_FILL
     end,
 
-    glIsEnabled_raw(NewCapability).
+    ?CALL_RAW_FUNC(glIsEnabled_raw(NewCapability)).
 
 -doc """
 Select a polygon rasterization mode.
@@ -10742,7 +11257,7 @@ polygon_mode(Face, Mode) ->
         front -> ?GL_FRONT
     end,
 
-    glPolygonMode_raw(NewFace, NewMode).
+    ?CALL_RAW_FUNC(glPolygonMode_raw(NewFace, NewMode)).
 
 -type get_vertex_attrib_value() ::
     [double()] |
@@ -10787,7 +11302,7 @@ get_vertex_attrib(i, Index, PName, N) ->
         vertex_attrib_array_long -> ?GL_VERTEX_ATTRIB_ARRAY_LONG
     end,
 
-    glGetVertexAttribiv_raw(Index, NewPName, N);
+    ?CALL_RAW_FUNC(glGetVertexAttribiv_raw(Index, NewPName, N));
 get_vertex_attrib(f, Index, PName, N) ->
     NewPName = case PName of
         vertex_attrib_array_size -> ?GL_VERTEX_ATTRIB_ARRAY_SIZE;
@@ -10804,7 +11319,7 @@ get_vertex_attrib(f, Index, PName, N) ->
         vertex_attrib_array_long -> ?GL_VERTEX_ATTRIB_ARRAY_LONG
     end,
 
-    glGetVertexAttribfv_raw(Index, NewPName, N);
+    ?CALL_RAW_FUNC(glGetVertexAttribfv_raw(Index, NewPName, N));
 get_vertex_attrib(d, Index, PName, N) ->
     NewPName = case PName of
         vertex_attrib_array_size -> ?GL_VERTEX_ATTRIB_ARRAY_SIZE;
@@ -10821,7 +11336,7 @@ get_vertex_attrib(d, Index, PName, N) ->
         vertex_attrib_array_long -> ?GL_VERTEX_ATTRIB_ARRAY_LONG
     end,
 
-    glGetVertexAttribdv_raw(Index, NewPName, N).
+    ?CALL_RAW_FUNC(glGetVertexAttribdv_raw(Index, NewPName, N)).
 
 -doc """
 Delete named buffer objects.
@@ -10840,7 +11355,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 delete_buffers(N, Buffers) ->
     NewBuffers = << <<ID:32/native>> || ID <- Buffers >>,
-    glDeleteBuffers_raw(N, NewBuffers).
+    ?CALL_RAW_FUNC(glDeleteBuffers_raw(N, NewBuffers)).
 
 -doc """
 Generate buffer object names.
@@ -10856,7 +11371,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec gen_buffers(N :: pos_integer()) -> {ok, Buffers :: [buffer()]} | {error, atom()}.
 gen_buffers(N) ->
 
-    glGenBuffers_raw(N).
+    ?CALL_RAW_FUNC(glGenBuffers_raw(N)).
 
 -doc """
 Select active texture unit.
@@ -10906,7 +11421,7 @@ active_texture(Texture) ->
         texture19 -> ?GL_TEXTURE19
     end,
 
-    glActiveTexture_raw(NewTexture).
+    ?CALL_RAW_FUNC(glActiveTexture_raw(NewTexture)).
 
 -doc """
 XXX: To be written.
@@ -11169,7 +11684,7 @@ get_integer64(Target, Index, Data) ->
         max_varying_vectors -> ?GL_MAX_VARYING_VECTORS
     end,
 
-    glGetInteger64i_v_raw(NewTarget, Index, Data).
+    ?CALL_RAW_FUNC(glGetInteger64i_v_raw(NewTarget, Index, Data)).
 
 -doc """
 Block until all GL execution is complete.
@@ -11185,7 +11700,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec finish() -> ok | {error, atom()}.
 finish() ->
 
-    glFinish_raw().
+    ?CALL_RAW_FUNC(glFinish_raw()).
 
 -doc """
 Copy pixels into a 1D texture image.
@@ -11355,7 +11870,246 @@ copy_tex_image_1d(Target, Level, InternalFormat, X, Y, Width, Border) ->
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glCopyTexImage1D_raw(NewTarget, Level, NewInternalFormat, X, Y, Width, Border).
+    ?CALL_RAW_FUNC(glCopyTexImage1D_raw(NewTarget, Level, NewInternalFormat, X, Y, Width, Border)).
+
+-type uniform_matrix_value() ::
+    matrix2(float()) |
+    matrix3(float()) |
+    matrix4(float()) |
+    matrix2x3(float()) |
+    matrix3x2(float()) |
+    matrix2x4(float()) |
+    matrix4x2(float()) |
+    matrix3x4(float()) |
+    matrix4x3(float()) |
+    matrix2(double()) |
+    matrix3(double()) |
+    matrix4(double()) |
+    matrix2x3(double()) |
+    matrix2x4(double()) |
+    matrix3x2(double()) |
+    matrix3x4(double()) |
+    matrix4x2(double()) |
+    matrix4x3(double())
+.
+
+-doc """
+To be written.
+
+It implements the following OpenGL commands:
+
+- `glUniformMatrix4x3dv`
+- `glUniformMatrix4x2dv`
+- `glUniformMatrix3x4dv`
+- `glUniformMatrix3x2dv`
+- `glUniformMatrix2x4dv`
+- `glUniformMatrix2x3dv`
+- `glUniformMatrix4dv`
+- `glUniformMatrix3dv`
+- `glUniformMatrix2dv`
+- `glUniformMatrix4x3fv`
+- `glUniformMatrix3x4fv`
+- `glUniformMatrix4x2fv`
+- `glUniformMatrix2x4fv`
+- `glUniformMatrix3x2fv`
+- `glUniformMatrix2x3fv`
+- `glUniformMatrix4fv`
+- `glUniformMatrix3fv`
+- `glUniformMatrix2fv`
+
+```
+gl:foobar(abc, xyz).
+```
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glUniformMatrix) for more information.
+""".
+-spec uniform_matrix(
+    Type :: f | d,
+    Location :: gl:int(),
+    Count :: integer(),
+    Transpose :: boolean(),
+    Value :: uniform_matrix_value()
+) -> ok | {error, atom()}.
+uniform_matrix(d, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 4 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 3 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_4x3(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix4x3dv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(d, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 4 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 2 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_4x2(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix4x2dv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(d, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 3 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 4 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_3x4(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix3x4dv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(d, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 3 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 2 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_3x2(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix3x2dv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(d, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 2 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 4 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_2x4(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix2x4dv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(d, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 2 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 3 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_2x3(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix2x3dv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(d, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 4 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 4 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_4x4(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix4dv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(d, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 3 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 3 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_3x3(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix3dv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(d, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 2 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 2 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_2x2(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix2dv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(f, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 4 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 3 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_4x3(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix4x3fv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(f, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 3 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 4 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_3x4(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix3x4fv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(f, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 4 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 2 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_4x2(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix4x2fv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(f, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 2 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 4 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_2x4(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix2x4fv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(f, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 3 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 2 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_3x2(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix3x2fv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(f, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 2 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 3 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_2x3(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix2x3fv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(f, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 4 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 4 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_4x4(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix4fv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(f, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 3 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 3 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_3x3(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix3fv_raw(Location, Count, Transpose, NewValue));
+uniform_matrix(f, Location, Count, Transpose, Value) when 
+    is_list(Value) andalso
+    is_tuple(hd(Value)) andalso
+    tuple_size(hd(Value)) =:= 2 andalso
+    is_tuple(element(1, hd(Value))) andalso
+    tuple_size(element(1, hd(Value))) =:= 2 
+->
+    NewValue = lists:foldl(fun(Matrix, Acc) -> Acc ++ ?GL_PACK_MATRIX_2x2(Matrix) end, [], Value),
+
+    ?CALL_RAW_FUNC(glUniformMatrix2fv_raw(Location, Count, Transpose, NewValue)).
 
 -type get_texture_parameter_i_value() ::
     [int()] |
@@ -11409,7 +12163,7 @@ get_texture_parameter_i(ui, Texture, ParamName, N) ->
         texture_swizzle_a -> ?GL_TEXTURE_SWIZZLE_A
     end,
 
-    glGetTextureParameterIuiv_raw(Texture, NewParamName, N);
+    ?CALL_RAW_FUNC(glGetTextureParameterIuiv_raw(Texture, NewParamName, N));
 get_texture_parameter_i(i, Texture, ParamName, N) ->
     NewParamName = case ParamName of
         texture_width -> ?GL_TEXTURE_WIDTH;
@@ -11441,7 +12195,7 @@ get_texture_parameter_i(i, Texture, ParamName, N) ->
         texture_swizzle_a -> ?GL_TEXTURE_SWIZZLE_A
     end,
 
-    glGetTextureParameterIiv_raw(Texture, NewParamName, N).
+    ?CALL_RAW_FUNC(glGetTextureParameterIiv_raw(Texture, NewParamName, N)).
 
 -doc """
 XXX: TO be written.
@@ -11457,7 +12211,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec end_conditional_render() -> ok | {error, atom()}.
 end_conditional_render() ->
 
-    glEndConditionalRender_raw().
+    ?CALL_RAW_FUNC(glEndConditionalRender_raw()).
 
 -doc """
 Establish the data storage, format, dimensions, and number of samples of a multisample texture's image.
@@ -11620,7 +12374,7 @@ tex_image_3d_multisample(Target, Samples, InternalFormat, Width, Height, Depth, 
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glTexImage3DMultisample_raw(NewTarget, Samples, NewInternalFormat, Width, Height, Depth, FixedSampleLocations).
+    ?CALL_RAW_FUNC(glTexImage3DMultisample_raw(NewTarget, Samples, NewInternalFormat, Width, Height, Depth, FixedSampleLocations)).
 
 -doc """
 Specify the equation used for both the RGB blend equation and the Alpha blend equation.
@@ -11646,7 +12400,7 @@ blend_equation(Buffer, Mode) ->
         func_add -> ?GL_FUNC_ADD
     end,
 
-    glBlendEquationi_raw(Buffer, NewMode).
+    ?CALL_RAW_FUNC(glBlendEquationi_raw(Buffer, NewMode)).
 
 -doc """
 Create program pipeline objects.
@@ -11662,7 +12416,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec create_program() -> {ok, Program :: program()} | {error, atom()}.
 create_program() ->
 
-    glCreateProgram_raw().
+    ?CALL_RAW_FUNC(glCreateProgram_raw()).
 
 -doc """
 Generate mipmaps for a specified texture object.
@@ -11678,7 +12432,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec generate_texture_mipmap(Texture :: texture()) -> ok | {error, atom()}.
 generate_texture_mipmap(Texture) ->
 
-    glGenerateTextureMipmap_raw(Texture).
+    ?CALL_RAW_FUNC(glGenerateTextureMipmap_raw(Texture)).
 
 -doc """
 Attach a single layer of a texture object as a logical buffer of a framebuffer object.
@@ -11748,7 +12502,7 @@ framebuffer_texture_layer(Target, Attachment, Texture, Level, Layer) ->
         draw_framebuffer -> ?GL_DRAW_FRAMEBUFFER
     end,
 
-    glFramebufferTextureLayer_raw(NewTarget, NewAttachment, Texture, Level, Layer).
+    ?CALL_RAW_FUNC(glFramebufferTextureLayer_raw(NewTarget, NewAttachment, Texture, Level, Layer)).
 
 -doc """
 Establish the data storage, format, dimensions, and number of samples of a multisample texture's image.
@@ -11910,7 +12664,7 @@ tex_image_2d_multisample(Target, Samples, InternalFormat, Width, Height, FixedSa
         proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
     end,
 
-    glTexImage2DMultisample_raw(NewTarget, Samples, NewInternalFormat, Width, Height, FixedSampleLocations).
+    ?CALL_RAW_FUNC(glTexImage2DMultisample_raw(NewTarget, Samples, NewInternalFormat, Width, Height, FixedSampleLocations)).
 
 -doc """
 Specify whether front- or back-facing facets can be culled.
@@ -11931,7 +12685,7 @@ cull_face(Mode) ->
         front -> ?GL_FRONT
     end,
 
-    glCullFace_raw(NewMode).
+    ?CALL_RAW_FUNC(glCullFace_raw(NewMode)).
 
 -doc """
 Returns a parameter from a program object.
@@ -11976,7 +12730,7 @@ get_program(i, Program, PName, N) ->
         attached_shaders -> ?GL_ATTACHED_SHADERS
     end,
 
-    glGetProgramiv_raw(Program, NewPName, N).
+    ?CALL_RAW_FUNC(glGetProgramiv_raw(Program, NewPName, N)).
 
 -doc """
 Delete vertex array objects.
@@ -11995,7 +12749,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 delete_vertex_arrays(N, Arrays) ->
     NewArrays = << <<ID:32/native>> || ID <- Arrays >>,
-    glDeleteVertexArrays_raw(N, NewArrays).
+    ?CALL_RAW_FUNC(glDeleteVertexArrays_raw(N, NewArrays)).
 
 -doc """
 Installs a program object as part of current rendering state.
@@ -12011,7 +12765,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec use_program(Program :: program()) -> ok | {error, atom()}.
 use_program(Program) ->
 
-    glUseProgram_raw(Program).
+    ?CALL_RAW_FUNC(glUseProgram_raw(Program)).
 
 -doc """
 Deletes a program object.
@@ -12027,7 +12781,26 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 -spec delete_program(Program :: program()) -> ok | {error, atom()}.
 delete_program(Program) ->
 
-    glDeleteProgram_raw(Program).
+    ?CALL_RAW_FUNC(glDeleteProgram_raw(Program)).
+
+-doc """
+Returns the location of a uniform variable.
+
+It implements the `glGetUniformLocation` function
+
+```
+gl:foobar(abc, xyz).
+```
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glGetUniformLocation) for more information.
+""".
+-spec get_uniform_location(
+    Program :: program(),
+    Name :: string()
+) -> {ok, Location :: gl:int()} | {error, atom()}.
+get_uniform_location(Program, Name) ->
+
+    ?CALL_RAW_FUNC(glGetUniformLocation_raw(Program, Name)).
 
 -doc """
 Copy a two-dimensional texture subimage.
@@ -12058,7 +12831,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 ) -> ok | {error, atom()}.
 copy_texture_sub_image_2d(Texture, Level, OffsetX, OffsetY, X, Y, Width, Height) ->
 
-    glCopyTextureSubImage2D_raw(Texture, Level, OffsetX, OffsetY, X, Y, Width, Height).
+    ?CALL_RAW_FUNC(glCopyTextureSubImage2D_raw(Texture, Level, OffsetX, OffsetY, X, Y, Width, Height)).
 
 
 glDisable_raw(_Cap) ->
@@ -12106,10 +12879,70 @@ glIsTransformFeedback_raw(_Feedback) ->
 glReadBuffer_raw(_Source) ->
     erlang:nif_error(nif_library_not_loaded).
 
+glUniform1d_raw(_Location, _V1) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform1f_raw(_Location, _V1) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform1i_raw(_Location, _V1) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform1ui_raw(_Location, _V1) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform2d_raw(_Location, _V1, _V2) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform2f_raw(_Location, _V1, _V2) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform2i_raw(_Location, _V1, _V2) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform2ui_raw(_Location, _V1, _V2) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform3d_raw(_Location, _V1, _V2, _V3) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform3f_raw(_Location, _V1, _V2, _V3) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform3i_raw(_Location, _V1, _V2, _V3) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform3ui_raw(_Location, _V1, _V2, _V3) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform4d_raw(_Location, _V1, _V2, _V3, _V4) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform4f_raw(_Location, _V1, _V2, _V3, _V4) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform4i_raw(_Location, _V1, _V2, _V3, _V4) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform4ui_raw(_Location, _V1, _V2, _V3, _V4) ->
+    erlang:nif_error(nif_library_not_loaded).
+
 glDeleteTransformFeedbacks_raw(_N, _Feedbacks) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glCreateShader_raw(_Type) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glGetUniformdv_raw(_Program, _Location, _Params) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glGetUniformfv_raw(_Program, _Location, _Params) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glGetUniformiv_raw(_Program, _Location, _Params) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glGetUniformuiv_raw(_Program, _Location, _Params) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glVertexAttribPointer_raw(_Index, _Size, _Type, _Normalized, _Stride, _Pointer) ->
@@ -12304,6 +13137,9 @@ glScissor_raw(_X, _Y, _Width, _Height) ->
 glTexImage2D_raw(_Target, _Level, _InternalFormat, _Width, _Height, _Border, _Format, _Type, _Pixels) ->
     erlang:nif_error(nif_library_not_loaded).
 
+glGetError_raw() ->
+    erlang:nif_error(nif_library_not_loaded).
+
 glIsVertexArray_raw(_Array) ->
     erlang:nif_error(nif_library_not_loaded).
 
@@ -12320,6 +13156,54 @@ glDeleteShader_raw(_Shader) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glDepthRange_raw(_Near, _Far) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform1dv_raw(_Location, _Count, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform1fv_raw(_Location, _Count, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform1iv_raw(_Location, _Count, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform1uiv_raw(_Location, _Count, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform2dv_raw(_Location, _Count, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform2fv_raw(_Location, _Count, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform2iv_raw(_Location, _Count, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform2uiv_raw(_Location, _Count, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform3dv_raw(_Location, _Count, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform3fv_raw(_Location, _Count, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform3iv_raw(_Location, _Count, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform3uiv_raw(_Location, _Count, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform4dv_raw(_Location, _Count, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform4fv_raw(_Location, _Count, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform4iv_raw(_Location, _Count, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniform4uiv_raw(_Location, _Count, _Value) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glSamplerParameterf_raw(_Sampler, _ParamName, _Param) ->
@@ -12715,6 +13599,60 @@ glFinish_raw() ->
 glCopyTexImage1D_raw(_Target, _Level, _InternalFormat, _X, _Y, _Width, _Border) ->
     erlang:nif_error(nif_library_not_loaded).
 
+glUniformMatrix2dv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix2fv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix2x3dv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix2x3fv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix2x4dv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix2x4fv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix3dv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix3fv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix3x2dv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix3x2fv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix3x4dv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix3x4fv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix4dv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix4fv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix4x2dv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix4x2fv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix4x3dv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glUniformMatrix4x3fv_raw(_Location, _Count, _Transpose, _Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
 glGetTextureParameterIiv_raw(_Texture, _ParamName, _Param) ->
     erlang:nif_error(nif_library_not_loaded).
 
@@ -12755,6 +13693,9 @@ glUseProgram_raw(_Program) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glDeleteProgram_raw(_Program) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glGetUniformLocation_raw(_Program, _Name) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glCopyTextureSubImage2D_raw(_Texture, _Level, _OffsetX, _OffsetY, _X, _Y, _Width, _Height) ->
