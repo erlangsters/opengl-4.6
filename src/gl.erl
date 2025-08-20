@@ -165,6 +165,7 @@ To be written.
 -export_type([pixel_format/0]).
 -export_type([clamp_color_mode_a_r_b/0]).
 -export_type([front_face_direction/0]).
+-export_type([vertex_attrib_type/0]).
 -export_type([sized_internal_format/0]).
 -export_type([clamp_color_target_a_r_b/0]).
 -export_type([vertex_attrib_property_a_r_b/0]).
@@ -185,6 +186,7 @@ To be written.
 -export_type([stencil_op/0]).
 -export_type([sampler_parameter_f/0]).
 -export_type([enable_cap/0]).
+-export_type([vertex_attrib_i_type/0]).
 -export_type([buffer_target_a_r_b/0]).
 -export_type([read_buffer_mode/0]).
 -export_type([pixel_type/0]).
@@ -193,6 +195,7 @@ To be written.
 -export_type([draw_buffer_mode/0]).
 -export_type([primitive_type/0]).
 -export_type([logic_op/0]).
+-export_type([vertex_attrib_l_type/0]).
 -export_type([blit_framebuffer_filter/0]).
 -export_type([framebuffer_attachment/0]).
 -export_type([shader_parameter_name/0]).
@@ -220,9 +223,11 @@ To be written.
 -nifs([glad_load_gl/0]).
 
 -export([disable/1]).
+-export([tex_sub_image_2d/9]).
 -export([blend_func_separate/5]).
 -export([enable_vertex_attrib_array/1]).
 -export([clear_stencil/1]).
+-export([vertex_attrib_binding/2]).
 -export([get_program_info_log/2]).
 -export([get_program_pipeline_info_log/2]).
 -export([get_boolean/3]).
@@ -230,6 +235,7 @@ To be written.
 -export([create_buffers/1]).
 -export([stencil_op/3]).
 -export([is_renderbuffer/1]).
+-export([tex_sub_image_1d/7]).
 -export([flush/0]).
 -export([is_query/1]).
 -export([is_transform_feedback/1]).
@@ -271,11 +277,13 @@ To be written.
 -export([enable/2]).
 -export([gen_renderbuffers/1]).
 -export([validate_program/1]).
+-export([bind_vertex_buffer/4]).
 -export([copy_tex_image_2d/8]).
 -export([bind_vertex_array/1]).
 -export([vertex_attrib_i/3]).
 -export([blit_framebuffer/10]).
 -export([stencil_mask_separate/2]).
+-export([vertex_attrib_format/5]).
 -export([scissor/4]).
 -export([tex_image_2d/9]).
 -export([get_error/0]).
@@ -293,6 +301,7 @@ To be written.
 -export([gen_program_pipelines/1]).
 -export([tex_buffer/3]).
 -export([draw_arrays/3]).
+-export([vertex_attrib_i_format/4]).
 -export([line_width/1]).
 -export([depth_mask/1]).
 -export([copy_tex_sub_image_3d/9]).
@@ -302,6 +311,7 @@ To be written.
 -export([get_tex_image/5]).
 -export([bind_buffer/2]).
 -export([copy_tex_sub_image_1d/6]).
+-export([vertex_binding_divisor/2]).
 -export([blend_func/3]).
 -export([bind_texture_unit/2]).
 -export([buffer_data/4]).
@@ -332,6 +342,7 @@ To be written.
 -export([stencil_func_separate/4]).
 -export([get_integer/2]).
 -export([gen_vertex_arrays/1]).
+-export([vertex_array_vertex_buffer/5]).
 -export([depth_func/1]).
 -export([gen_framebuffers/1]).
 -export([delete_program_pipelines/2]).
@@ -346,6 +357,7 @@ To be written.
 -export([gen_transform_feedbacks/1]).
 -export([is_sampler/1]).
 -export([front_face/1]).
+-export([vertex_array_attrib_format/6]).
 -export([blend_equation/1]).
 -export([get_string/1]).
 -export([logic_op/1]).
@@ -368,6 +380,7 @@ To be written.
 -export([is_enabled/1]).
 -export([polygon_mode/2]).
 -export([get_vertex_attrib/4]).
+-export([vertex_array_attrib_l_format/5]).
 -export([delete_buffers/2]).
 -export([gen_buffers/1]).
 -export([active_texture/1]).
@@ -387,24 +400,34 @@ To be written.
 -export([get_program/4]).
 -export([delete_vertex_arrays/2]).
 -export([use_program/1]).
+-export([read_pixels/7]).
 -export([delete_program/1]).
+-export([vertex_attrib_l_format/4]).
 -export([get_uniform_location/2]).
 -export([copy_texture_sub_image_2d/8]).
+-export([vertex_array_attrib_i_format/5]).
 
 -include("../include/gl.hrl").
+
 
 -ifndef(DEBUG).
 -define(CALL_RAW_FUNC(Func), 
     begin
-    case Func of
-        {} ->
-            ok;
-        {Arg__} ->
-            {ok, Arg__};
-        {Arg1__, Arg2__} ->
-            {ok, Arg1__, Arg2__};
-        {Arg1__, Arg2__, Arg3__} ->
-            {ok, Arg1__, Arg2__, Arg3__}
+    Result__ = Func,
+    case get_error() of
+        no_error ->
+            case Result__ of
+                {} ->
+                    ok;
+                {Arg__} ->
+                    {ok, Arg__};
+                {Arg1__, Arg2__} ->
+                    {ok, Arg1__, Arg2__};
+                {Arg1__, Arg2__, Arg3__} ->
+                    {ok, Arg1__, Arg2__, Arg3__}
+            end;
+        Code__ ->
+            {error, Code__}
     end
     end
 ).
@@ -563,6 +586,22 @@ To be written.
 -type front_face_direction() ::
     cw |
     ccw
+.
+-doc "The OpenGL `vertex_attrib_type` enum.".
+-type vertex_attrib_type() ::
+    half_float |
+    int_2_10_10_10_rev |
+    fixed |
+    short |
+    double |
+    unsigned_int_10f_11f_11f_rev |
+    unsigned_int_2_10_10_10_rev |
+    unsigned_byte |
+    float |
+    int |
+    unsigned_int |
+    unsigned_short |
+    byte
 .
 -doc "The OpenGL `sized_internal_format` enum.".
 -type sized_internal_format() ::
@@ -1301,6 +1340,15 @@ To be written.
     clip_distance5 |
     clip_distance2
 .
+-doc "The OpenGL `vertex_attrib_i_type` enum.".
+-type vertex_attrib_i_type() ::
+    short |
+    unsigned_byte |
+    int |
+    unsigned_int |
+    unsigned_short |
+    byte
+.
 -doc "The OpenGL `buffer_target_a_r_b` enum.".
 -type buffer_target_a_r_b() ::
     parameter_buffer |
@@ -1468,6 +1516,10 @@ To be written.
     and_reverse |
     set
 .
+-doc "The OpenGL `vertex_attrib_l_type` enum.".
+-type vertex_attrib_l_type() ::
+    double
+.
 -doc "The OpenGL `blit_framebuffer_filter` enum.".
 -type blit_framebuffer_filter() ::
     nearest |
@@ -1626,9 +1678,11 @@ To be written.
 ].
 
 -nifs([glDisable_raw/1]).
+-nifs([glTexSubImage2D_raw/9]).
 -nifs([glBlendFuncSeparatei_raw/5]).
 -nifs([glEnableVertexAttribArray_raw/1]).
 -nifs([glClearStencil_raw/1]).
+-nifs([glVertexAttribBinding_raw/2]).
 -nifs([glGetProgramInfoLog_raw/2]).
 -nifs([glGetProgramPipelineInfoLog_raw/2]).
 -nifs([glGetBooleani_v_raw/3]).
@@ -1636,6 +1690,7 @@ To be written.
 -nifs([glCreateBuffers_raw/1]).
 -nifs([glStencilOp_raw/3]).
 -nifs([glIsRenderbuffer_raw/1]).
+-nifs([glTexSubImage1D_raw/7]).
 -nifs([glFlush_raw/0]).
 -nifs([glIsQuery_raw/1]).
 -nifs([glIsTransformFeedback_raw/1]).
@@ -1700,6 +1755,7 @@ To be written.
 -nifs([glEnablei_raw/2]).
 -nifs([glGenRenderbuffers_raw/1]).
 -nifs([glValidateProgram_raw/1]).
+-nifs([glBindVertexBuffer_raw/4]).
 -nifs([glCopyTexImage2D_raw/8]).
 -nifs([glBindVertexArray_raw/1]).
 -nifs([glVertexAttribI1i_raw/2]).
@@ -1724,6 +1780,7 @@ To be written.
 -nifs([glVertexAttribI4usv_raw/2]).
 -nifs([glBlitFramebuffer_raw/10]).
 -nifs([glStencilMaskSeparate_raw/2]).
+-nifs([glVertexAttribFormat_raw/5]).
 -nifs([glScissor_raw/4]).
 -nifs([glTexImage2D_raw/9]).
 -nifs([glGetError_raw/0]).
@@ -1759,6 +1816,7 @@ To be written.
 -nifs([glGenProgramPipelines_raw/1]).
 -nifs([glTexBuffer_raw/3]).
 -nifs([glDrawArrays_raw/3]).
+-nifs([glVertexAttribIFormat_raw/4]).
 -nifs([glLineWidth_raw/1]).
 -nifs([glDepthMask_raw/1]).
 -nifs([glCopyTexSubImage3D_raw/9]).
@@ -1768,6 +1826,7 @@ To be written.
 -nifs([glGetTexImage_raw/5]).
 -nifs([glBindBuffer_raw/2]).
 -nifs([glCopyTexSubImage1D_raw/6]).
+-nifs([glVertexBindingDivisor_raw/2]).
 -nifs([glBlendFunci_raw/3]).
 -nifs([glBindTextureUnit_raw/2]).
 -nifs([glBufferData_raw/4]).
@@ -1803,6 +1862,7 @@ To be written.
 -nifs([glStencilFuncSeparate_raw/4]).
 -nifs([glGetIntegerv_raw/2]).
 -nifs([glGenVertexArrays_raw/1]).
+-nifs([glVertexArrayVertexBuffer_raw/5]).
 -nifs([glDepthFunc_raw/1]).
 -nifs([glGenFramebuffers_raw/1]).
 -nifs([glDeleteProgramPipelines_raw/2]).
@@ -1845,6 +1905,7 @@ To be written.
 -nifs([glGenTransformFeedbacks_raw/1]).
 -nifs([glIsSampler_raw/1]).
 -nifs([glFrontFace_raw/1]).
+-nifs([glVertexArrayAttribFormat_raw/6]).
 -nifs([glBlendEquation_raw/1]).
 -nifs([glGetString_raw/1]).
 -nifs([glLogicOp_raw/1]).
@@ -1874,6 +1935,7 @@ To be written.
 -nifs([glGetVertexAttribdv_raw/3]).
 -nifs([glGetVertexAttribfv_raw/3]).
 -nifs([glGetVertexAttribiv_raw/3]).
+-nifs([glVertexArrayAttribLFormat_raw/5]).
 -nifs([glDeleteBuffers_raw/2]).
 -nifs([glGenBuffers_raw/1]).
 -nifs([glActiveTexture_raw/1]).
@@ -1911,9 +1973,12 @@ To be written.
 -nifs([glGetProgramiv_raw/3]).
 -nifs([glDeleteVertexArrays_raw/2]).
 -nifs([glUseProgram_raw/1]).
+-nifs([glReadPixels_raw/7]).
 -nifs([glDeleteProgram_raw/1]).
+-nifs([glVertexAttribLFormat_raw/4]).
 -nifs([glGetUniformLocation_raw/2]).
 -nifs([glCopyTextureSubImage2D_raw/8]).
+-nifs([glVertexArrayAttribIFormat_raw/5]).
 
 -on_load(init_nif/0).
 
@@ -2089,6 +2154,112 @@ disable(Cap) ->
     ?CALL_RAW_FUNC(glDisable_raw(NewCap)).
 
 -doc """
+Specify a two-dimensional texture subimage.
+
+It implements the `glTexSubImage2D` function
+
+```
+gl:foobar(abc, xyz).
+```
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glTexSubImage2D) for more information.
+""".
+-spec tex_sub_image_2d(
+    Target :: texture_target(),
+    Level :: gl:int(),
+    OffsetX :: gl:int(),
+    OffsetY :: gl:int(),
+    Width :: integer(),
+    Height :: integer(),
+    Format :: pixel_format(),
+    Type :: pixel_type(),
+    Pixels :: binary()
+) -> ok | {error, atom()}.
+tex_sub_image_2d(Target, Level, OffsetX, OffsetY, Width, Height, Format, Type, Pixels) ->
+    NewType = case Type of
+        byte -> ?GL_BYTE;
+        unsigned_short -> ?GL_UNSIGNED_SHORT;
+        unsigned_int_8_8_8_8_rev -> ?GL_UNSIGNED_INT_8_8_8_8_REV;
+        unsigned_short_5_6_5_rev -> ?GL_UNSIGNED_SHORT_5_6_5_REV;
+        unsigned_int -> ?GL_UNSIGNED_INT;
+        int -> ?GL_INT;
+        unsigned_short_1_5_5_5_rev -> ?GL_UNSIGNED_SHORT_1_5_5_5_REV;
+        unsigned_short_4_4_4_4 -> ?GL_UNSIGNED_SHORT_4_4_4_4;
+        unsigned_int_10_10_10_2 -> ?GL_UNSIGNED_INT_10_10_10_2;
+        unsigned_short_4_4_4_4_rev -> ?GL_UNSIGNED_SHORT_4_4_4_4_REV;
+        unsigned_int_5_9_9_9_rev -> ?GL_UNSIGNED_INT_5_9_9_9_REV;
+        float -> ?GL_FLOAT;
+        unsigned_int_24_8 -> ?GL_UNSIGNED_INT_24_8;
+        unsigned_byte -> ?GL_UNSIGNED_BYTE;
+        unsigned_int_2_10_10_10_rev -> ?GL_UNSIGNED_INT_2_10_10_10_REV;
+        unsigned_byte_2_3_3_rev -> ?GL_UNSIGNED_BYTE_2_3_3_REV;
+        unsigned_int_8_8_8_8 -> ?GL_UNSIGNED_INT_8_8_8_8;
+        unsigned_int_10f_11f_11f_rev -> ?GL_UNSIGNED_INT_10F_11F_11F_REV;
+        unsigned_short_5_5_5_1 -> ?GL_UNSIGNED_SHORT_5_5_5_1;
+        float_32_unsigned_int_24_8_rev -> ?GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+        short -> ?GL_SHORT;
+        unsigned_short_5_6_5 -> ?GL_UNSIGNED_SHORT_5_6_5;
+        unsigned_byte_3_3_2 -> ?GL_UNSIGNED_BYTE_3_3_2;
+        half_float -> ?GL_HALF_FLOAT
+    end,
+    NewFormat = case Format of
+        unsigned_short -> ?GL_UNSIGNED_SHORT;
+        rgba -> ?GL_RGBA;
+        rg_integer -> ?GL_RG_INTEGER;
+        stencil_index -> ?GL_STENCIL_INDEX;
+        red_integer -> ?GL_RED_INTEGER;
+        unsigned_int -> ?GL_UNSIGNED_INT;
+        blue_integer -> ?GL_BLUE_INTEGER;
+        depth_component -> ?GL_DEPTH_COMPONENT;
+        red -> ?GL_RED;
+        green -> ?GL_GREEN;
+        depth_stencil -> ?GL_DEPTH_STENCIL;
+        alpha -> ?GL_ALPHA;
+        bgr -> ?GL_BGR;
+        bgra_integer -> ?GL_BGRA_INTEGER;
+        blue -> ?GL_BLUE;
+        rg -> ?GL_RG;
+        rgb_integer -> ?GL_RGB_INTEGER;
+        rgb -> ?GL_RGB;
+        bgr_integer -> ?GL_BGR_INTEGER;
+        bgra -> ?GL_BGRA;
+        green_integer -> ?GL_GREEN_INTEGER;
+        rgba_integer -> ?GL_RGBA_INTEGER
+    end,
+    NewTarget = case Target of
+        texture_cube_map_positive_z -> ?GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
+        proxy_texture_rectangle -> ?GL_PROXY_TEXTURE_RECTANGLE;
+        texture_cube_map -> ?GL_TEXTURE_CUBE_MAP;
+        texture_cube_map_negative_x -> ?GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
+        texture_cube_map_positive_y -> ?GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
+        texture_cube_map_negative_y -> ?GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
+        renderbuffer -> ?GL_RENDERBUFFER;
+        texture_3d -> ?GL_TEXTURE_3D;
+        texture_cube_map_positive_x -> ?GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+        proxy_texture_2d_multisample_array -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE_ARRAY;
+        proxy_texture_1d -> ?GL_PROXY_TEXTURE_1D;
+        proxy_texture_2d -> ?GL_PROXY_TEXTURE_2D;
+        proxy_texture_cube_map_array -> ?GL_PROXY_TEXTURE_CUBE_MAP_ARRAY;
+        texture_1d_array -> ?GL_TEXTURE_1D_ARRAY;
+        proxy_texture_3d -> ?GL_PROXY_TEXTURE_3D;
+        texture_cube_map_negative_z -> ?GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
+        texture_2d_array -> ?GL_TEXTURE_2D_ARRAY;
+        proxy_texture_2d_array -> ?GL_PROXY_TEXTURE_2D_ARRAY;
+        texture_rectangle -> ?GL_TEXTURE_RECTANGLE;
+        texture_buffer -> ?GL_TEXTURE_BUFFER;
+        texture_2d -> ?GL_TEXTURE_2D;
+        proxy_texture_cube_map -> ?GL_PROXY_TEXTURE_CUBE_MAP;
+        texture_1d -> ?GL_TEXTURE_1D;
+        proxy_texture_1d_array -> ?GL_PROXY_TEXTURE_1D_ARRAY;
+        texture_2d_multisample_array -> ?GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+        texture_2d_multisample -> ?GL_TEXTURE_2D_MULTISAMPLE;
+        texture_cube_map_array -> ?GL_TEXTURE_CUBE_MAP_ARRAY;
+        proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
+    end,
+
+    ?CALL_RAW_FUNC(glTexSubImage2D_raw(NewTarget, Level, OffsetX, OffsetY, Width, Height, NewFormat, NewType, Pixels)).
+
+-doc """
 Specify pixel arithmetic for RGB and alpha components separately.
 
 It implements the `glBlendFuncSeparatei` function
@@ -2225,6 +2396,25 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 clear_stencil(Value) ->
 
     ?CALL_RAW_FUNC(glClearStencil_raw(Value)).
+
+-doc """
+Associate a vertex attribute and a vertex buffer binding for a vertex array object.
+
+It implements the `glVertexAttribBinding` function
+
+```
+gl:foobar(abc, xyz).
+```
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glVertexAttribBinding) for more information.
+""".
+-spec vertex_attrib_binding(
+    AttribIndex :: gl:uint(),
+    BindingIndex :: gl:uint()
+) -> ok | {error, atom()}.
+vertex_attrib_binding(AttribIndex, BindingIndex) ->
+
+    ?CALL_RAW_FUNC(glVertexAttribBinding_raw(AttribIndex, BindingIndex)).
 
 -doc """
 Returns the information log for a program object.
@@ -2669,6 +2859,110 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 is_renderbuffer(Buffer) ->
 
     ?CALL_RAW_FUNC(glIsRenderbuffer_raw(Buffer)).
+
+-doc """
+Specify a one-dimensional texture subimage.
+
+It implements the `glTexSubImage1D` function
+
+```
+gl:foobar(abc, xyz).
+```
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glTexSubImage1D) for more information.
+""".
+-spec tex_sub_image_1d(
+    Target :: texture_target(),
+    Level :: gl:int(),
+    Offset :: gl:int(),
+    Width :: integer(),
+    Format :: pixel_format(),
+    Type :: pixel_type(),
+    Pixels :: binary()
+) -> ok | {error, atom()}.
+tex_sub_image_1d(Target, Level, Offset, Width, Format, Type, Pixels) ->
+    NewType = case Type of
+        byte -> ?GL_BYTE;
+        unsigned_short -> ?GL_UNSIGNED_SHORT;
+        unsigned_int_8_8_8_8_rev -> ?GL_UNSIGNED_INT_8_8_8_8_REV;
+        unsigned_short_5_6_5_rev -> ?GL_UNSIGNED_SHORT_5_6_5_REV;
+        unsigned_int -> ?GL_UNSIGNED_INT;
+        int -> ?GL_INT;
+        unsigned_short_1_5_5_5_rev -> ?GL_UNSIGNED_SHORT_1_5_5_5_REV;
+        unsigned_short_4_4_4_4 -> ?GL_UNSIGNED_SHORT_4_4_4_4;
+        unsigned_int_10_10_10_2 -> ?GL_UNSIGNED_INT_10_10_10_2;
+        unsigned_short_4_4_4_4_rev -> ?GL_UNSIGNED_SHORT_4_4_4_4_REV;
+        unsigned_int_5_9_9_9_rev -> ?GL_UNSIGNED_INT_5_9_9_9_REV;
+        float -> ?GL_FLOAT;
+        unsigned_int_24_8 -> ?GL_UNSIGNED_INT_24_8;
+        unsigned_byte -> ?GL_UNSIGNED_BYTE;
+        unsigned_int_2_10_10_10_rev -> ?GL_UNSIGNED_INT_2_10_10_10_REV;
+        unsigned_byte_2_3_3_rev -> ?GL_UNSIGNED_BYTE_2_3_3_REV;
+        unsigned_int_8_8_8_8 -> ?GL_UNSIGNED_INT_8_8_8_8;
+        unsigned_int_10f_11f_11f_rev -> ?GL_UNSIGNED_INT_10F_11F_11F_REV;
+        unsigned_short_5_5_5_1 -> ?GL_UNSIGNED_SHORT_5_5_5_1;
+        float_32_unsigned_int_24_8_rev -> ?GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+        short -> ?GL_SHORT;
+        unsigned_short_5_6_5 -> ?GL_UNSIGNED_SHORT_5_6_5;
+        unsigned_byte_3_3_2 -> ?GL_UNSIGNED_BYTE_3_3_2;
+        half_float -> ?GL_HALF_FLOAT
+    end,
+    NewFormat = case Format of
+        unsigned_short -> ?GL_UNSIGNED_SHORT;
+        rgba -> ?GL_RGBA;
+        rg_integer -> ?GL_RG_INTEGER;
+        stencil_index -> ?GL_STENCIL_INDEX;
+        red_integer -> ?GL_RED_INTEGER;
+        unsigned_int -> ?GL_UNSIGNED_INT;
+        blue_integer -> ?GL_BLUE_INTEGER;
+        depth_component -> ?GL_DEPTH_COMPONENT;
+        red -> ?GL_RED;
+        green -> ?GL_GREEN;
+        depth_stencil -> ?GL_DEPTH_STENCIL;
+        alpha -> ?GL_ALPHA;
+        bgr -> ?GL_BGR;
+        bgra_integer -> ?GL_BGRA_INTEGER;
+        blue -> ?GL_BLUE;
+        rg -> ?GL_RG;
+        rgb_integer -> ?GL_RGB_INTEGER;
+        rgb -> ?GL_RGB;
+        bgr_integer -> ?GL_BGR_INTEGER;
+        bgra -> ?GL_BGRA;
+        green_integer -> ?GL_GREEN_INTEGER;
+        rgba_integer -> ?GL_RGBA_INTEGER
+    end,
+    NewTarget = case Target of
+        texture_cube_map_positive_z -> ?GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
+        proxy_texture_rectangle -> ?GL_PROXY_TEXTURE_RECTANGLE;
+        texture_cube_map -> ?GL_TEXTURE_CUBE_MAP;
+        texture_cube_map_negative_x -> ?GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
+        texture_cube_map_positive_y -> ?GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
+        texture_cube_map_negative_y -> ?GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
+        renderbuffer -> ?GL_RENDERBUFFER;
+        texture_3d -> ?GL_TEXTURE_3D;
+        texture_cube_map_positive_x -> ?GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+        proxy_texture_2d_multisample_array -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE_ARRAY;
+        proxy_texture_1d -> ?GL_PROXY_TEXTURE_1D;
+        proxy_texture_2d -> ?GL_PROXY_TEXTURE_2D;
+        proxy_texture_cube_map_array -> ?GL_PROXY_TEXTURE_CUBE_MAP_ARRAY;
+        texture_1d_array -> ?GL_TEXTURE_1D_ARRAY;
+        proxy_texture_3d -> ?GL_PROXY_TEXTURE_3D;
+        texture_cube_map_negative_z -> ?GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
+        texture_2d_array -> ?GL_TEXTURE_2D_ARRAY;
+        proxy_texture_2d_array -> ?GL_PROXY_TEXTURE_2D_ARRAY;
+        texture_rectangle -> ?GL_TEXTURE_RECTANGLE;
+        texture_buffer -> ?GL_TEXTURE_BUFFER;
+        texture_2d -> ?GL_TEXTURE_2D;
+        proxy_texture_cube_map -> ?GL_PROXY_TEXTURE_CUBE_MAP;
+        texture_1d -> ?GL_TEXTURE_1D;
+        proxy_texture_1d_array -> ?GL_PROXY_TEXTURE_1D_ARRAY;
+        texture_2d_multisample_array -> ?GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+        texture_2d_multisample -> ?GL_TEXTURE_2D_MULTISAMPLE;
+        texture_cube_map_array -> ?GL_TEXTURE_CUBE_MAP_ARRAY;
+        proxy_texture_2d_multisample -> ?GL_PROXY_TEXTURE_2D_MULTISAMPLE
+    end,
+
+    ?CALL_RAW_FUNC(glTexSubImage1D_raw(NewTarget, Level, Offset, Width, NewFormat, NewType, Pixels)).
 
 -doc """
 Force execution of GL commands in finite time.
@@ -4888,6 +5182,27 @@ validate_program(Program) ->
     ?CALL_RAW_FUNC(glValidateProgram_raw(Program)).
 
 -doc """
+Bind a buffer to a vertex buffer bind point.
+
+It implements the `glBindVertexBuffer` function
+
+```
+gl:foobar(abc, xyz).
+```
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glBindVertexBuffer) for more information.
+""".
+-spec bind_vertex_buffer(
+    BindingIndex :: gl:uint(),
+    Buffer :: buffer(),
+    Offset :: integer(),
+    Stride :: integer()
+) -> ok | {error, atom()}.
+bind_vertex_buffer(BindingIndex, Buffer, Offset, Stride) ->
+
+    ?CALL_RAW_FUNC(glBindVertexBuffer_raw(BindingIndex, Buffer, Offset, Stride)).
+
+-doc """
 Copy pixels into a 2D texture image.
 
 It implements the `glCopyTexImage2D` function
@@ -5357,6 +5672,43 @@ stencil_mask_separate(Face, Mask) ->
     ?CALL_RAW_FUNC(glStencilMaskSeparate_raw(NewFace, Mask)).
 
 -doc """
+Specify the organization of vertex arrays.
+
+It implements the `glVertexAttribFormat` function
+
+```
+gl:foobar(abc, xyz).
+```
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glVertexAttribFormat) for more information.
+""".
+-spec vertex_attrib_format(
+    AttribIndex :: gl:uint(),
+    Size :: gl:int(),
+    Type :: vertex_attrib_type(),
+    Normalized :: boolean(),
+    RelativeOffset :: gl:uint()
+) -> ok | {error, atom()}.
+vertex_attrib_format(AttribIndex, Size, Type, Normalized, RelativeOffset) ->
+    NewType = case Type of
+        byte -> ?GL_BYTE;
+        unsigned_short -> ?GL_UNSIGNED_SHORT;
+        unsigned_int -> ?GL_UNSIGNED_INT;
+        int -> ?GL_INT;
+        float -> ?GL_FLOAT;
+        unsigned_byte -> ?GL_UNSIGNED_BYTE;
+        unsigned_int_2_10_10_10_rev -> ?GL_UNSIGNED_INT_2_10_10_10_REV;
+        unsigned_int_10f_11f_11f_rev -> ?GL_UNSIGNED_INT_10F_11F_11F_REV;
+        double -> ?GL_DOUBLE;
+        short -> ?GL_SHORT;
+        fixed -> ?GL_FIXED;
+        int_2_10_10_10_rev -> ?GL_INT_2_10_10_10_REV;
+        half_float -> ?GL_HALF_FLOAT
+    end,
+
+    ?CALL_RAW_FUNC(glVertexAttribFormat_raw(AttribIndex, Size, NewType, Normalized, RelativeOffset)).
+
+-doc """
 Define the scissor box.
 
 It implements the `glScissor` function
@@ -5609,10 +5961,10 @@ It implements the `glGetError` function
 
 Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glGetError) for more information.
 """.
--spec get_error() -> {ok, Code :: error_code()} | {error, atom()}.
+-spec get_error() -> Code :: error_code().
 get_error() ->
-
-    ?CALL_RAW_FUNC(glGetError_raw()).
+    {Code} = glGetError_raw(),
+    Code.
 
 -doc """
 Determine if a name corresponds to a vertex array object.
@@ -5779,7 +6131,7 @@ depth_range(Near, Far) ->
 
     ?CALL_RAW_FUNC(glDepthRange_raw(Near, Far)).
 
--type uniform_value() ::
+-type uniform_value_x() ::
     [vector1(float())] |
     [vector2(float())] |
     [vector3(float())] |
@@ -5830,7 +6182,7 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
     Type :: f | i | d | ui,
     Location :: gl:int(),
     Count :: integer(),
-    Value :: uniform_value()
+    Value :: uniform_value_x()
 ) -> ok | {error, atom()}.
 uniform(d, Location, Count, Value) when 
     is_list(Value) andalso
@@ -6580,6 +6932,31 @@ draw_arrays(Mode, First, Count) ->
     ?CALL_RAW_FUNC(glDrawArrays_raw(NewMode, First, Count)).
 
 -doc """
+undefined
+
+It implements the `glVertexAttribIFormat` function
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glVertexAttribIFormat) for more information.
+""".
+-spec vertex_attrib_i_format(
+    AttribIndex :: gl:uint(),
+    Size :: gl:int(),
+    Type :: vertex_attrib_i_type(),
+    RelativeOffset :: gl:uint()
+) -> ok | {error, atom()}.
+vertex_attrib_i_format(AttribIndex, Size, Type, RelativeOffset) ->
+    NewType = case Type of
+        byte -> ?GL_BYTE;
+        unsigned_short -> ?GL_UNSIGNED_SHORT;
+        unsigned_int -> ?GL_UNSIGNED_INT;
+        int -> ?GL_INT;
+        unsigned_byte -> ?GL_UNSIGNED_BYTE;
+        short -> ?GL_SHORT
+    end,
+
+    ?CALL_RAW_FUNC(glVertexAttribIFormat_raw(AttribIndex, Size, NewType, RelativeOffset)).
+
+-doc """
 Specify the width of rasterized lines.
 
 It implements the `glLineWidth` function
@@ -7150,6 +7527,26 @@ copy_tex_sub_image_1d(Target, Level, Offset, X, Y, Width) ->
     end,
 
     ?CALL_RAW_FUNC(glCopyTexSubImage1D_raw(NewTarget, Level, Offset, X, Y, Width)).
+
+-doc """
+Modify the rate at which generic vertex attributes
+    advance.
+
+It implements the `glVertexBindingDivisor` function
+
+```
+gl:foobar(abc, xyz).
+```
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glVertexBindingDivisor) for more information.
+""".
+-spec vertex_binding_divisor(
+    Index :: gl:uint(),
+    Divisor :: gl:uint()
+) -> ok | {error, atom()}.
+vertex_binding_divisor(Index, Divisor) ->
+
+    ?CALL_RAW_FUNC(glVertexBindingDivisor_raw(Index, Divisor)).
 
 -doc """
 Specify pixel arithmetic.
@@ -9372,6 +9769,28 @@ gen_vertex_arrays(N) ->
     ?CALL_RAW_FUNC(glGenVertexArrays_raw(N)).
 
 -doc """
+Bind a buffer to a vertex buffer bind point.
+
+It implements the `glVertexArrayVertexBuffer` function
+
+```
+gl:foobar(abc, xyz).
+```
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glVertexArrayVertexBuffer) for more information.
+""".
+-spec vertex_array_vertex_buffer(
+    Array :: vertex_array(),
+    BindingIndex :: gl:uint(),
+    Buffer :: buffer(),
+    Offset :: integer(),
+    Stride :: integer()
+) -> ok | {error, atom()}.
+vertex_array_vertex_buffer(Array, BindingIndex, Buffer, Offset, Stride) ->
+
+    ?CALL_RAW_FUNC(glVertexArrayVertexBuffer_raw(Array, BindingIndex, Buffer, Offset, Stride)).
+
+-doc """
 Specify the value used for depth buffer comparisons.
 
 It implements the `glDepthFunc` function
@@ -10289,6 +10708,44 @@ front_face(Mode) ->
     end,
 
     ?CALL_RAW_FUNC(glFrontFace_raw(NewMode)).
+
+-doc """
+Specify the organization of vertex arrays.
+
+It implements the `glVertexArrayAttribFormat` function
+
+```
+gl:foobar(abc, xyz).
+```
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glVertexArrayAttribFormat) for more information.
+""".
+-spec vertex_array_attrib_format(
+    Array :: vertex_array(),
+    AttribIndex :: gl:uint(),
+    Size :: gl:int(),
+    Type :: vertex_attrib_type(),
+    Normalized :: boolean(),
+    RelativeOffset :: gl:uint()
+) -> ok | {error, atom()}.
+vertex_array_attrib_format(Array, AttribIndex, Size, Type, Normalized, RelativeOffset) ->
+    NewType = case Type of
+        byte -> ?GL_BYTE;
+        unsigned_short -> ?GL_UNSIGNED_SHORT;
+        unsigned_int -> ?GL_UNSIGNED_INT;
+        int -> ?GL_INT;
+        float -> ?GL_FLOAT;
+        unsigned_byte -> ?GL_UNSIGNED_BYTE;
+        unsigned_int_2_10_10_10_rev -> ?GL_UNSIGNED_INT_2_10_10_10_REV;
+        unsigned_int_10f_11f_11f_rev -> ?GL_UNSIGNED_INT_10F_11F_11F_REV;
+        double -> ?GL_DOUBLE;
+        short -> ?GL_SHORT;
+        fixed -> ?GL_FIXED;
+        int_2_10_10_10_rev -> ?GL_INT_2_10_10_10_REV;
+        half_float -> ?GL_HALF_FLOAT
+    end,
+
+    ?CALL_RAW_FUNC(glVertexArrayAttribFormat_raw(Array, AttribIndex, Size, NewType, Normalized, RelativeOffset)).
 
 -doc """
 Specify the equation used for both the RGB blend equation and the Alpha blend equation.
@@ -11337,6 +11794,27 @@ get_vertex_attrib(d, Index, PName, N) ->
     end,
 
     ?CALL_RAW_FUNC(glGetVertexAttribdv_raw(Index, NewPName, N)).
+
+-doc """
+undefined
+
+It implements the `glVertexArrayAttribLFormat` function
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glVertexArrayAttribLFormat) for more information.
+""".
+-spec vertex_array_attrib_l_format(
+    Array :: vertex_array(),
+    AttribIndex :: gl:uint(),
+    Size :: gl:int(),
+    Type :: vertex_attrib_l_type(),
+    RelativeOffset :: gl:uint()
+) -> ok | {error, atom()}.
+vertex_array_attrib_l_format(Array, AttribIndex, Size, Type, RelativeOffset) ->
+    NewType = case Type of
+        double -> ?GL_DOUBLE
+    end,
+
+    ?CALL_RAW_FUNC(glVertexArrayAttribLFormat_raw(Array, AttribIndex, Size, NewType, RelativeOffset)).
 
 -doc """
 Delete named buffer objects.
@@ -12768,6 +13246,80 @@ use_program(Program) ->
     ?CALL_RAW_FUNC(glUseProgram_raw(Program)).
 
 -doc """
+Read a block of pixels from the frame buffer.
+
+It implements the `glReadPixels` function
+
+```
+gl:foobar(abc, xyz).
+```
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glReadPixels) for more information.
+""".
+-spec read_pixels(
+    X :: gl:int(),
+    Y :: gl:int(),
+    Width :: integer(),
+    Height :: integer(),
+    Format :: pixel_format(),
+    Type :: pixel_type(),
+    PixelsSize :: non_neg_integer()
+) -> {ok, Pixels :: binary()} | {error, atom()}.
+read_pixels(X, Y, Width, Height, Format, Type, PixelsSize) ->
+    NewType = case Type of
+        byte -> ?GL_BYTE;
+        unsigned_short -> ?GL_UNSIGNED_SHORT;
+        unsigned_int_8_8_8_8_rev -> ?GL_UNSIGNED_INT_8_8_8_8_REV;
+        unsigned_short_5_6_5_rev -> ?GL_UNSIGNED_SHORT_5_6_5_REV;
+        unsigned_int -> ?GL_UNSIGNED_INT;
+        int -> ?GL_INT;
+        unsigned_short_1_5_5_5_rev -> ?GL_UNSIGNED_SHORT_1_5_5_5_REV;
+        unsigned_short_4_4_4_4 -> ?GL_UNSIGNED_SHORT_4_4_4_4;
+        unsigned_int_10_10_10_2 -> ?GL_UNSIGNED_INT_10_10_10_2;
+        unsigned_short_4_4_4_4_rev -> ?GL_UNSIGNED_SHORT_4_4_4_4_REV;
+        unsigned_int_5_9_9_9_rev -> ?GL_UNSIGNED_INT_5_9_9_9_REV;
+        float -> ?GL_FLOAT;
+        unsigned_int_24_8 -> ?GL_UNSIGNED_INT_24_8;
+        unsigned_byte -> ?GL_UNSIGNED_BYTE;
+        unsigned_int_2_10_10_10_rev -> ?GL_UNSIGNED_INT_2_10_10_10_REV;
+        unsigned_byte_2_3_3_rev -> ?GL_UNSIGNED_BYTE_2_3_3_REV;
+        unsigned_int_8_8_8_8 -> ?GL_UNSIGNED_INT_8_8_8_8;
+        unsigned_int_10f_11f_11f_rev -> ?GL_UNSIGNED_INT_10F_11F_11F_REV;
+        unsigned_short_5_5_5_1 -> ?GL_UNSIGNED_SHORT_5_5_5_1;
+        float_32_unsigned_int_24_8_rev -> ?GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+        short -> ?GL_SHORT;
+        unsigned_short_5_6_5 -> ?GL_UNSIGNED_SHORT_5_6_5;
+        unsigned_byte_3_3_2 -> ?GL_UNSIGNED_BYTE_3_3_2;
+        half_float -> ?GL_HALF_FLOAT
+    end,
+    NewFormat = case Format of
+        unsigned_short -> ?GL_UNSIGNED_SHORT;
+        rgba -> ?GL_RGBA;
+        rg_integer -> ?GL_RG_INTEGER;
+        stencil_index -> ?GL_STENCIL_INDEX;
+        red_integer -> ?GL_RED_INTEGER;
+        unsigned_int -> ?GL_UNSIGNED_INT;
+        blue_integer -> ?GL_BLUE_INTEGER;
+        depth_component -> ?GL_DEPTH_COMPONENT;
+        red -> ?GL_RED;
+        green -> ?GL_GREEN;
+        depth_stencil -> ?GL_DEPTH_STENCIL;
+        alpha -> ?GL_ALPHA;
+        bgr -> ?GL_BGR;
+        bgra_integer -> ?GL_BGRA_INTEGER;
+        blue -> ?GL_BLUE;
+        rg -> ?GL_RG;
+        rgb_integer -> ?GL_RGB_INTEGER;
+        rgb -> ?GL_RGB;
+        bgr_integer -> ?GL_BGR_INTEGER;
+        bgra -> ?GL_BGRA;
+        green_integer -> ?GL_GREEN_INTEGER;
+        rgba_integer -> ?GL_RGBA_INTEGER
+    end,
+
+    ?CALL_RAW_FUNC(glReadPixels_raw(X, Y, Width, Height, NewFormat, NewType, PixelsSize)).
+
+-doc """
 Deletes a program object.
 
 It implements the `glDeleteProgram` function
@@ -12782,6 +13334,26 @@ Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl
 delete_program(Program) ->
 
     ?CALL_RAW_FUNC(glDeleteProgram_raw(Program)).
+
+-doc """
+undefined
+
+It implements the `glVertexAttribLFormat` function
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glVertexAttribLFormat) for more information.
+""".
+-spec vertex_attrib_l_format(
+    AttribIndex :: gl:uint(),
+    Size :: gl:int(),
+    Type :: vertex_attrib_l_type(),
+    RelativeOffset :: gl:uint()
+) -> ok | {error, atom()}.
+vertex_attrib_l_format(AttribIndex, Size, Type, RelativeOffset) ->
+    NewType = case Type of
+        double -> ?GL_DOUBLE
+    end,
+
+    ?CALL_RAW_FUNC(glVertexAttribLFormat_raw(AttribIndex, Size, NewType, RelativeOffset)).
 
 -doc """
 Returns the location of a uniform variable.
@@ -12833,8 +13405,37 @@ copy_texture_sub_image_2d(Texture, Level, OffsetX, OffsetY, X, Y, Width, Height)
 
     ?CALL_RAW_FUNC(glCopyTextureSubImage2D_raw(Texture, Level, OffsetX, OffsetY, X, Y, Width, Height)).
 
+-doc """
+undefined
+
+It implements the `glVertexArrayAttribIFormat` function
+
+Consult the documentation of the underlying [OpenGL function](https://docs.gl/gl4/glVertexArrayAttribIFormat) for more information.
+""".
+-spec vertex_array_attrib_i_format(
+    Array :: vertex_array(),
+    AttribIndex :: gl:uint(),
+    Size :: gl:int(),
+    Type :: vertex_attrib_i_type(),
+    RelativeOffset :: gl:uint()
+) -> ok | {error, atom()}.
+vertex_array_attrib_i_format(Array, AttribIndex, Size, Type, RelativeOffset) ->
+    NewType = case Type of
+        byte -> ?GL_BYTE;
+        unsigned_short -> ?GL_UNSIGNED_SHORT;
+        unsigned_int -> ?GL_UNSIGNED_INT;
+        int -> ?GL_INT;
+        unsigned_byte -> ?GL_UNSIGNED_BYTE;
+        short -> ?GL_SHORT
+    end,
+
+    ?CALL_RAW_FUNC(glVertexArrayAttribIFormat_raw(Array, AttribIndex, Size, NewType, RelativeOffset)).
+
 
 glDisable_raw(_Cap) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glTexSubImage2D_raw(_Target, _Level, _OffsetX, _OffsetY, _Width, _Height, _Format, _Type, _Pixels) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glBlendFuncSeparatei_raw(_Buffer, _SourceRGB, _DestinationRGB, _SourceAlpha, _DestinationAlpha) ->
@@ -12844,6 +13445,9 @@ glEnableVertexAttribArray_raw(_Index) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glClearStencil_raw(_Value) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glVertexAttribBinding_raw(_AttribIndex, _BindingIndex) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glGetProgramInfoLog_raw(_Program, _InfoLog) ->
@@ -12865,6 +13469,9 @@ glStencilOp_raw(_Fail, _ZFail, _ZPass) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glIsRenderbuffer_raw(_Buffer) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glTexSubImage1D_raw(_Target, _Level, _Offset, _Width, _Format, _Type, _Pixels) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glFlush_raw() ->
@@ -13059,6 +13666,9 @@ glGenRenderbuffers_raw(_Buffers) ->
 glValidateProgram_raw(_Program) ->
     erlang:nif_error(nif_library_not_loaded).
 
+glBindVertexBuffer_raw(_BindingIndex, _Buffer, _Offset, _Stride) ->
+    erlang:nif_error(nif_library_not_loaded).
+
 glCopyTexImage2D_raw(_Target, _Level, _InternalFormat, _X, _Y, _Width, _Height, _Border) ->
     erlang:nif_error(nif_library_not_loaded).
 
@@ -13129,6 +13739,9 @@ glBlitFramebuffer_raw(_SrcX0, _SrcY0, _SrcX1, _SrcY1, _DstX0, _DstY0, _DstX1, _D
     erlang:nif_error(nif_library_not_loaded).
 
 glStencilMaskSeparate_raw(_Face, _Mask) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glVertexAttribFormat_raw(_AttribIndex, _Size, _Type, _Normalized, _RelativeOffset) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glScissor_raw(_X, _Y, _Width, _Height) ->
@@ -13236,6 +13849,9 @@ glTexBuffer_raw(_Target, _InternalFormat, _Buffer) ->
 glDrawArrays_raw(_Mode, _First, _Count) ->
     erlang:nif_error(nif_library_not_loaded).
 
+glVertexAttribIFormat_raw(_AttribIndex, _Size, _Type, _RelativeOffset) ->
+    erlang:nif_error(nif_library_not_loaded).
+
 glLineWidth_raw(_Width) ->
     erlang:nif_error(nif_library_not_loaded).
 
@@ -13261,6 +13877,9 @@ glBindBuffer_raw(_Target, _Buffer) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glCopyTexSubImage1D_raw(_Target, _Level, _Offset, _X, _Y, _Width) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glVertexBindingDivisor_raw(_Index, _Divisor) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glBlendFunci_raw(_Buffer, _SourceFactor, _DestinationFactor) ->
@@ -13366,6 +13985,9 @@ glGetIntegerv_raw(_Name, _Data) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glGenVertexArrays_raw(_Arrays) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glVertexArrayVertexBuffer_raw(_Array, _BindingIndex, _Buffer, _Offset, _Stride) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glDepthFunc_raw(_Function) ->
@@ -13494,6 +14116,9 @@ glIsSampler_raw(_Sampler) ->
 glFrontFace_raw(_Mode) ->
     erlang:nif_error(nif_library_not_loaded).
 
+glVertexArrayAttribFormat_raw(_Array, _AttribIndex, _Size, _Type, _Normalized, _RelativeOffset) ->
+    erlang:nif_error(nif_library_not_loaded).
+
 glBlendEquation_raw(_Mode) ->
     erlang:nif_error(nif_library_not_loaded).
 
@@ -13579,6 +14204,9 @@ glGetVertexAttribfv_raw(_Index, _PName, _Values) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glGetVertexAttribiv_raw(_Index, _PName, _Values) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glVertexArrayAttribLFormat_raw(_Array, _AttribIndex, _Size, _Type, _RelativeOffset) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glDeleteBuffers_raw(_N, _Buffers) ->
@@ -13692,12 +14320,21 @@ glDeleteVertexArrays_raw(_N, _Arrays) ->
 glUseProgram_raw(_Program) ->
     erlang:nif_error(nif_library_not_loaded).
 
+glReadPixels_raw(_X, _Y, _Width, _Height, _Format, _Type, _Pixels) ->
+    erlang:nif_error(nif_library_not_loaded).
+
 glDeleteProgram_raw(_Program) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glVertexAttribLFormat_raw(_AttribIndex, _Size, _Type, _RelativeOffset) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glGetUniformLocation_raw(_Program, _Name) ->
     erlang:nif_error(nif_library_not_loaded).
 
 glCopyTextureSubImage2D_raw(_Texture, _Level, _OffsetX, _OffsetY, _X, _Y, _Width, _Height) ->
+    erlang:nif_error(nif_library_not_loaded).
+
+glVertexArrayAttribIFormat_raw(_Array, _AttribIndex, _Size, _Type, _RelativeOffset) ->
     erlang:nif_error(nif_library_not_loaded).
 

@@ -1546,6 +1546,73 @@ static ERL_NIF_TERM nif_glDisable(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
     return egl_nif_execute_command(nif_glDisable_command, env, argc, (ERL_NIF_TERM *)argv);
 }
 
+static ERL_NIF_TERM nif_glTexSubImage2D_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    (void)argc;
+
+    GLenum arg_0;
+    unsigned int arg_0_tmp;
+    if (!enif_get_uint(env, argv[0], &arg_0_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_0 = (GLenum)arg_0_tmp;
+    GLint arg_1;
+    int arg_1_tmp;
+    if (!enif_get_int(env, argv[1], &arg_1_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_1 = (GLint)arg_1_tmp;
+    GLint arg_2;
+    int arg_2_tmp;
+    if (!enif_get_int(env, argv[2], &arg_2_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_2 = (GLint)arg_2_tmp;
+    GLint arg_3;
+    int arg_3_tmp;
+    if (!enif_get_int(env, argv[3], &arg_3_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_3 = (GLint)arg_3_tmp;
+    GLsizei arg_4;
+    int arg_4_tmp;
+    if (!enif_get_int(env, argv[4], &arg_4_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_4 = (GLsizei)arg_4_tmp;
+    GLsizei arg_5;
+    int arg_5_tmp;
+    if (!enif_get_int(env, argv[5], &arg_5_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_5 = (GLsizei)arg_5_tmp;
+    GLenum arg_6;
+    unsigned int arg_6_tmp;
+    if (!enif_get_uint(env, argv[6], &arg_6_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_6 = (GLenum)arg_6_tmp;
+    GLenum arg_7;
+    unsigned int arg_7_tmp;
+    if (!enif_get_uint(env, argv[7], &arg_7_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_7 = (GLenum)arg_7_tmp;
+    ErlNifBinary arg_8;
+    if (!enif_inspect_binary(env, argv[8], &arg_8)) {
+        return enif_make_badarg(env);
+    }
+
+    glTexSubImage2D(arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6, arg_7, arg_8.data);
+
+    return enif_make_tuple(env, 0);
+}
+
+static ERL_NIF_TERM nif_glTexSubImage2D(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    return egl_nif_execute_command(nif_glTexSubImage2D_command, env, argc, (ERL_NIF_TERM *)argv);
+}
+
 static ERL_NIF_TERM nif_glBlendFuncSeparatei_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     (void)argc;
@@ -1631,6 +1698,33 @@ static ERL_NIF_TERM nif_glClearStencil_command(ErlNifEnv* env, int argc, const E
 static ERL_NIF_TERM nif_glClearStencil(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     return egl_nif_execute_command(nif_glClearStencil_command, env, argc, (ERL_NIF_TERM *)argv);
+}
+
+static ERL_NIF_TERM nif_glVertexAttribBinding_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    (void)argc;
+
+    GLuint arg_0;
+    unsigned int arg_0_tmp;
+    if (!enif_get_uint(env, argv[0], &arg_0_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_0 = (GLuint)arg_0_tmp;
+    GLuint arg_1;
+    unsigned int arg_1_tmp;
+    if (!enif_get_uint(env, argv[1], &arg_1_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_1 = (GLuint)arg_1_tmp;
+
+    glVertexAttribBinding(arg_0, arg_1);
+
+    return enif_make_tuple(env, 0);
+}
+
+static ERL_NIF_TERM nif_glVertexAttribBinding(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    return egl_nif_execute_command(nif_glVertexAttribBinding_command, env, argc, (ERL_NIF_TERM *)argv);
 }
 
 static ERL_NIF_TERM nif_glGetProgramInfoLog_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -1856,6 +1950,61 @@ static ERL_NIF_TERM nif_glIsRenderbuffer_command(ErlNifEnv* env, int argc, const
 static ERL_NIF_TERM nif_glIsRenderbuffer(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     return egl_nif_execute_command(nif_glIsRenderbuffer_command, env, argc, (ERL_NIF_TERM *)argv);
+}
+
+static ERL_NIF_TERM nif_glTexSubImage1D_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    (void)argc;
+
+    GLenum arg_0;
+    unsigned int arg_0_tmp;
+    if (!enif_get_uint(env, argv[0], &arg_0_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_0 = (GLenum)arg_0_tmp;
+    GLint arg_1;
+    int arg_1_tmp;
+    if (!enif_get_int(env, argv[1], &arg_1_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_1 = (GLint)arg_1_tmp;
+    GLint arg_2;
+    int arg_2_tmp;
+    if (!enif_get_int(env, argv[2], &arg_2_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_2 = (GLint)arg_2_tmp;
+    GLsizei arg_3;
+    int arg_3_tmp;
+    if (!enif_get_int(env, argv[3], &arg_3_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_3 = (GLsizei)arg_3_tmp;
+    GLenum arg_4;
+    unsigned int arg_4_tmp;
+    if (!enif_get_uint(env, argv[4], &arg_4_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_4 = (GLenum)arg_4_tmp;
+    GLenum arg_5;
+    unsigned int arg_5_tmp;
+    if (!enif_get_uint(env, argv[5], &arg_5_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_5 = (GLenum)arg_5_tmp;
+    ErlNifBinary arg_6;
+    if (!enif_inspect_binary(env, argv[6], &arg_6)) {
+        return enif_make_badarg(env);
+    }
+
+    glTexSubImage1D(arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6.data);
+
+    return enif_make_tuple(env, 0);
+}
+
+static ERL_NIF_TERM nif_glTexSubImage1D(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    return egl_nif_execute_command(nif_glTexSubImage1D_command, env, argc, (ERL_NIF_TERM *)argv);
 }
 
 static ERL_NIF_TERM nif_glFlush_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -3908,6 +4057,45 @@ static ERL_NIF_TERM nif_glValidateProgram(ErlNifEnv* env, int argc, const ERL_NI
     return egl_nif_execute_command(nif_glValidateProgram_command, env, argc, (ERL_NIF_TERM *)argv);
 }
 
+static ERL_NIF_TERM nif_glBindVertexBuffer_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    (void)argc;
+
+    GLuint arg_0;
+    unsigned int arg_0_tmp;
+    if (!enif_get_uint(env, argv[0], &arg_0_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_0 = (GLuint)arg_0_tmp;
+    GLuint arg_1;
+    unsigned int arg_1_tmp;
+    if (!enif_get_uint(env, argv[1], &arg_1_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_1 = (GLuint)arg_1_tmp;
+    GLintptr arg_2;
+    int arg_2_tmp;
+    if (!enif_get_int(env, argv[2], &arg_2_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_2 = (GLintptr)arg_2_tmp;
+    GLsizei arg_3;
+    int arg_3_tmp;
+    if (!enif_get_int(env, argv[3], &arg_3_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_3 = (GLsizei)arg_3_tmp;
+
+    glBindVertexBuffer(arg_0, arg_1, arg_2, arg_3);
+
+    return enif_make_tuple(env, 0);
+}
+
+static ERL_NIF_TERM nif_glBindVertexBuffer(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    return egl_nif_execute_command(nif_glBindVertexBuffer_command, env, argc, (ERL_NIF_TERM *)argv);
+}
+
 static ERL_NIF_TERM nif_glCopyTexImage2D_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     (void)argc;
@@ -4860,6 +5048,53 @@ static ERL_NIF_TERM nif_glStencilMaskSeparate_command(ErlNifEnv* env, int argc, 
 static ERL_NIF_TERM nif_glStencilMaskSeparate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     return egl_nif_execute_command(nif_glStencilMaskSeparate_command, env, argc, (ERL_NIF_TERM *)argv);
+}
+
+static ERL_NIF_TERM nif_glVertexAttribFormat_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    (void)argc;
+
+    GLuint arg_0;
+    unsigned int arg_0_tmp;
+    if (!enif_get_uint(env, argv[0], &arg_0_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_0 = (GLuint)arg_0_tmp;
+    GLint arg_1;
+    int arg_1_tmp;
+    if (!enif_get_int(env, argv[1], &arg_1_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_1 = (GLint)arg_1_tmp;
+    GLenum arg_2;
+    unsigned int arg_2_tmp;
+    if (!enif_get_uint(env, argv[2], &arg_2_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_2 = (GLenum)arg_2_tmp;
+    GLboolean arg_3;
+    if (enif_compare(argv[3], enif_make_atom(env, "true")) == 0) {
+        arg_3 = GL_TRUE;
+    } else if (enif_compare(argv[3], enif_make_atom(env, "false")) == 0) {
+        arg_3 = GL_FALSE;
+    } else {
+        return enif_make_badarg(env);
+    }
+    GLuint arg_4;
+    unsigned int arg_4_tmp;
+    if (!enif_get_uint(env, argv[4], &arg_4_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_4 = (GLuint)arg_4_tmp;
+
+    glVertexAttribFormat(arg_0, arg_1, arg_2, arg_3, arg_4);
+
+    return enif_make_tuple(env, 0);
+}
+
+static ERL_NIF_TERM nif_glVertexAttribFormat(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    return egl_nif_execute_command(nif_glVertexAttribFormat_command, env, argc, (ERL_NIF_TERM *)argv);
 }
 
 static ERL_NIF_TERM nif_glScissor_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -6229,6 +6464,45 @@ static ERL_NIF_TERM nif_glDrawArrays(ErlNifEnv* env, int argc, const ERL_NIF_TER
     return egl_nif_execute_command(nif_glDrawArrays_command, env, argc, (ERL_NIF_TERM *)argv);
 }
 
+static ERL_NIF_TERM nif_glVertexAttribIFormat_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    (void)argc;
+
+    GLuint arg_0;
+    unsigned int arg_0_tmp;
+    if (!enif_get_uint(env, argv[0], &arg_0_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_0 = (GLuint)arg_0_tmp;
+    GLint arg_1;
+    int arg_1_tmp;
+    if (!enif_get_int(env, argv[1], &arg_1_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_1 = (GLint)arg_1_tmp;
+    GLenum arg_2;
+    unsigned int arg_2_tmp;
+    if (!enif_get_uint(env, argv[2], &arg_2_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_2 = (GLenum)arg_2_tmp;
+    GLuint arg_3;
+    unsigned int arg_3_tmp;
+    if (!enif_get_uint(env, argv[3], &arg_3_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_3 = (GLuint)arg_3_tmp;
+
+    glVertexAttribIFormat(arg_0, arg_1, arg_2, arg_3);
+
+    return enif_make_tuple(env, 0);
+}
+
+static ERL_NIF_TERM nif_glVertexAttribIFormat(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    return egl_nif_execute_command(nif_glVertexAttribIFormat_command, env, argc, (ERL_NIF_TERM *)argv);
+}
+
 static ERL_NIF_TERM nif_glLineWidth_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     (void)argc;
@@ -6602,6 +6876,33 @@ static ERL_NIF_TERM nif_glCopyTexSubImage1D_command(ErlNifEnv* env, int argc, co
 static ERL_NIF_TERM nif_glCopyTexSubImage1D(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     return egl_nif_execute_command(nif_glCopyTexSubImage1D_command, env, argc, (ERL_NIF_TERM *)argv);
+}
+
+static ERL_NIF_TERM nif_glVertexBindingDivisor_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    (void)argc;
+
+    GLuint arg_0;
+    unsigned int arg_0_tmp;
+    if (!enif_get_uint(env, argv[0], &arg_0_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_0 = (GLuint)arg_0_tmp;
+    GLuint arg_1;
+    unsigned int arg_1_tmp;
+    if (!enif_get_uint(env, argv[1], &arg_1_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_1 = (GLuint)arg_1_tmp;
+
+    glVertexBindingDivisor(arg_0, arg_1);
+
+    return enif_make_tuple(env, 0);
+}
+
+static ERL_NIF_TERM nif_glVertexBindingDivisor(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    return egl_nif_execute_command(nif_glVertexBindingDivisor_command, env, argc, (ERL_NIF_TERM *)argv);
 }
 
 static ERL_NIF_TERM nif_glBlendFunci_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -7281,7 +7582,7 @@ static ERL_NIF_TERM nif_glShaderSource_command(ErlNifEnv* env, int argc, const E
         if (arg_1_strings) enif_free(arg_1_strings);
         if (arg_1_lengths) enif_free(arg_1_lengths);
         if (arg_1_binaries) enif_free(arg_1_binaries);
-        return enif_make_tuple2(env, 
+        return enif_make_tuple2(env,
             enif_make_atom(env, "error"),
             enif_make_atom(env, "out_of_memory")
         );
@@ -7839,6 +8140,51 @@ static ERL_NIF_TERM nif_glGenVertexArrays_command(ErlNifEnv* env, int argc, cons
 static ERL_NIF_TERM nif_glGenVertexArrays(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     return egl_nif_execute_command(nif_glGenVertexArrays_command, env, argc, (ERL_NIF_TERM *)argv);
+}
+
+static ERL_NIF_TERM nif_glVertexArrayVertexBuffer_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    (void)argc;
+
+    GLuint arg_0;
+    unsigned int arg_0_tmp;
+    if (!enif_get_uint(env, argv[0], &arg_0_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_0 = (GLuint)arg_0_tmp;
+    GLuint arg_1;
+    unsigned int arg_1_tmp;
+    if (!enif_get_uint(env, argv[1], &arg_1_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_1 = (GLuint)arg_1_tmp;
+    GLuint arg_2;
+    unsigned int arg_2_tmp;
+    if (!enif_get_uint(env, argv[2], &arg_2_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_2 = (GLuint)arg_2_tmp;
+    GLintptr arg_3;
+    int arg_3_tmp;
+    if (!enif_get_int(env, argv[3], &arg_3_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_3 = (GLintptr)arg_3_tmp;
+    GLsizei arg_4;
+    int arg_4_tmp;
+    if (!enif_get_int(env, argv[4], &arg_4_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_4 = (GLsizei)arg_4_tmp;
+
+    glVertexArrayVertexBuffer(arg_0, arg_1, arg_2, arg_3, arg_4);
+
+    return enif_make_tuple(env, 0);
+}
+
+static ERL_NIF_TERM nif_glVertexArrayVertexBuffer(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    return egl_nif_execute_command(nif_glVertexArrayVertexBuffer_command, env, argc, (ERL_NIF_TERM *)argv);
 }
 
 static ERL_NIF_TERM nif_glDepthFunc_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -9332,6 +9678,59 @@ static ERL_NIF_TERM nif_glFrontFace(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     return egl_nif_execute_command(nif_glFrontFace_command, env, argc, (ERL_NIF_TERM *)argv);
 }
 
+static ERL_NIF_TERM nif_glVertexArrayAttribFormat_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    (void)argc;
+
+    GLuint arg_0;
+    unsigned int arg_0_tmp;
+    if (!enif_get_uint(env, argv[0], &arg_0_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_0 = (GLuint)arg_0_tmp;
+    GLuint arg_1;
+    unsigned int arg_1_tmp;
+    if (!enif_get_uint(env, argv[1], &arg_1_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_1 = (GLuint)arg_1_tmp;
+    GLint arg_2;
+    int arg_2_tmp;
+    if (!enif_get_int(env, argv[2], &arg_2_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_2 = (GLint)arg_2_tmp;
+    GLenum arg_3;
+    unsigned int arg_3_tmp;
+    if (!enif_get_uint(env, argv[3], &arg_3_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_3 = (GLenum)arg_3_tmp;
+    GLboolean arg_4;
+    if (enif_compare(argv[4], enif_make_atom(env, "true")) == 0) {
+        arg_4 = GL_TRUE;
+    } else if (enif_compare(argv[4], enif_make_atom(env, "false")) == 0) {
+        arg_4 = GL_FALSE;
+    } else {
+        return enif_make_badarg(env);
+    }
+    GLuint arg_5;
+    unsigned int arg_5_tmp;
+    if (!enif_get_uint(env, argv[5], &arg_5_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_5 = (GLuint)arg_5_tmp;
+
+    glVertexArrayAttribFormat(arg_0, arg_1, arg_2, arg_3, arg_4, arg_5);
+
+    return enif_make_tuple(env, 0);
+}
+
+static ERL_NIF_TERM nif_glVertexArrayAttribFormat(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    return egl_nif_execute_command(nif_glVertexArrayAttribFormat_command, env, argc, (ERL_NIF_TERM *)argv);
+}
+
 static ERL_NIF_TERM nif_glBlendEquation_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     (void)argc;
@@ -10280,6 +10679,51 @@ static ERL_NIF_TERM nif_glGetVertexAttribiv_command(ErlNifEnv* env, int argc, co
 static ERL_NIF_TERM nif_glGetVertexAttribiv(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     return egl_nif_execute_command(nif_glGetVertexAttribiv_command, env, argc, (ERL_NIF_TERM *)argv);
+}
+
+static ERL_NIF_TERM nif_glVertexArrayAttribLFormat_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    (void)argc;
+
+    GLuint arg_0;
+    unsigned int arg_0_tmp;
+    if (!enif_get_uint(env, argv[0], &arg_0_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_0 = (GLuint)arg_0_tmp;
+    GLuint arg_1;
+    unsigned int arg_1_tmp;
+    if (!enif_get_uint(env, argv[1], &arg_1_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_1 = (GLuint)arg_1_tmp;
+    GLint arg_2;
+    int arg_2_tmp;
+    if (!enif_get_int(env, argv[2], &arg_2_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_2 = (GLint)arg_2_tmp;
+    GLenum arg_3;
+    unsigned int arg_3_tmp;
+    if (!enif_get_uint(env, argv[3], &arg_3_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_3 = (GLenum)arg_3_tmp;
+    GLuint arg_4;
+    unsigned int arg_4_tmp;
+    if (!enif_get_uint(env, argv[4], &arg_4_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_4 = (GLuint)arg_4_tmp;
+
+    glVertexArrayAttribLFormat(arg_0, arg_1, arg_2, arg_3, arg_4);
+
+    return enif_make_tuple(env, 0);
+}
+
+static ERL_NIF_TERM nif_glVertexArrayAttribLFormat(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    return egl_nif_execute_command(nif_glVertexArrayAttribLFormat_command, env, argc, (ERL_NIF_TERM *)argv);
 }
 
 static ERL_NIF_TERM nif_glDeleteBuffers_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -11861,6 +12305,63 @@ static ERL_NIF_TERM nif_glUseProgram(ErlNifEnv* env, int argc, const ERL_NIF_TER
     return egl_nif_execute_command(nif_glUseProgram_command, env, argc, (ERL_NIF_TERM *)argv);
 }
 
+static ERL_NIF_TERM nif_glReadPixels_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    (void)argc;
+
+    GLint arg_0;
+    int arg_0_tmp;
+    if (!enif_get_int(env, argv[0], &arg_0_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_0 = (GLint)arg_0_tmp;
+    GLint arg_1;
+    int arg_1_tmp;
+    if (!enif_get_int(env, argv[1], &arg_1_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_1 = (GLint)arg_1_tmp;
+    GLsizei arg_2;
+    int arg_2_tmp;
+    if (!enif_get_int(env, argv[2], &arg_2_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_2 = (GLsizei)arg_2_tmp;
+    GLsizei arg_3;
+    int arg_3_tmp;
+    if (!enif_get_int(env, argv[3], &arg_3_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_3 = (GLsizei)arg_3_tmp;
+    GLenum arg_4;
+    unsigned int arg_4_tmp;
+    if (!enif_get_uint(env, argv[4], &arg_4_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_4 = (GLenum)arg_4_tmp;
+    GLenum arg_5;
+    unsigned int arg_5_tmp;
+    if (!enif_get_uint(env, argv[5], &arg_5_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_5 = (GLenum)arg_5_tmp;
+    unsigned int arg_6_size;
+    enif_get_uint(env, argv[6], &arg_6_size);
+    ERL_NIF_TERM arg_6;
+    unsigned char* arg_6_data = enif_make_new_binary(env, arg_6_size, &arg_6);
+
+    glReadPixels(arg_0, arg_1, arg_2, arg_3, arg_4, arg_5, arg_6_data);
+
+    return enif_make_tuple(env, 1,
+        arg_6
+    );
+}
+
+static ERL_NIF_TERM nif_glReadPixels(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    return egl_nif_execute_command(nif_glReadPixels_command, env, argc, (ERL_NIF_TERM *)argv);
+}
+
 static ERL_NIF_TERM nif_glDeleteProgram_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     (void)argc;
@@ -11880,6 +12381,45 @@ static ERL_NIF_TERM nif_glDeleteProgram_command(ErlNifEnv* env, int argc, const 
 static ERL_NIF_TERM nif_glDeleteProgram(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     return egl_nif_execute_command(nif_glDeleteProgram_command, env, argc, (ERL_NIF_TERM *)argv);
+}
+
+static ERL_NIF_TERM nif_glVertexAttribLFormat_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    (void)argc;
+
+    GLuint arg_0;
+    unsigned int arg_0_tmp;
+    if (!enif_get_uint(env, argv[0], &arg_0_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_0 = (GLuint)arg_0_tmp;
+    GLint arg_1;
+    int arg_1_tmp;
+    if (!enif_get_int(env, argv[1], &arg_1_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_1 = (GLint)arg_1_tmp;
+    GLenum arg_2;
+    unsigned int arg_2_tmp;
+    if (!enif_get_uint(env, argv[2], &arg_2_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_2 = (GLenum)arg_2_tmp;
+    GLuint arg_3;
+    unsigned int arg_3_tmp;
+    if (!enif_get_uint(env, argv[3], &arg_3_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_3 = (GLuint)arg_3_tmp;
+
+    glVertexAttribLFormat(arg_0, arg_1, arg_2, arg_3);
+
+    return enif_make_tuple(env, 0);
+}
+
+static ERL_NIF_TERM nif_glVertexAttribLFormat(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    return egl_nif_execute_command(nif_glVertexAttribLFormat_command, env, argc, (ERL_NIF_TERM *)argv);
 }
 
 static ERL_NIF_TERM nif_glGetUniformLocation_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -11978,13 +12518,60 @@ static ERL_NIF_TERM nif_glCopyTextureSubImage2D(ErlNifEnv* env, int argc, const 
     return egl_nif_execute_command(nif_glCopyTextureSubImage2D_command, env, argc, (ERL_NIF_TERM *)argv);
 }
 
+static ERL_NIF_TERM nif_glVertexArrayAttribIFormat_command(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    (void)argc;
+
+    GLuint arg_0;
+    unsigned int arg_0_tmp;
+    if (!enif_get_uint(env, argv[0], &arg_0_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_0 = (GLuint)arg_0_tmp;
+    GLuint arg_1;
+    unsigned int arg_1_tmp;
+    if (!enif_get_uint(env, argv[1], &arg_1_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_1 = (GLuint)arg_1_tmp;
+    GLint arg_2;
+    int arg_2_tmp;
+    if (!enif_get_int(env, argv[2], &arg_2_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_2 = (GLint)arg_2_tmp;
+    GLenum arg_3;
+    unsigned int arg_3_tmp;
+    if (!enif_get_uint(env, argv[3], &arg_3_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_3 = (GLenum)arg_3_tmp;
+    GLuint arg_4;
+    unsigned int arg_4_tmp;
+    if (!enif_get_uint(env, argv[4], &arg_4_tmp)) {
+        return enif_make_badarg(env);
+    }
+    arg_4 = (GLuint)arg_4_tmp;
+
+    glVertexArrayAttribIFormat(arg_0, arg_1, arg_2, arg_3, arg_4);
+
+    return enif_make_tuple(env, 0);
+}
+
+static ERL_NIF_TERM nif_glVertexArrayAttribIFormat(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    return egl_nif_execute_command(nif_glVertexArrayAttribIFormat_command, env, argc, (ERL_NIF_TERM *)argv);
+}
+
 
 static ErlNifFunc nif_functions[] = {
 {"glad_load_gl", 0, nif_gladLoadGl, 0},
     {"glDisable_raw", 1, nif_glDisable, 0},
+    {"glTexSubImage2D_raw", 9, nif_glTexSubImage2D, 0},
     {"glBlendFuncSeparatei_raw", 5, nif_glBlendFuncSeparatei, 0},
     {"glEnableVertexAttribArray_raw", 1, nif_glEnableVertexAttribArray, 0},
     {"glClearStencil_raw", 1, nif_glClearStencil, 0},
+    {"glVertexAttribBinding_raw", 2, nif_glVertexAttribBinding, 0},
     {"glGetProgramInfoLog_raw", 2, nif_glGetProgramInfoLog, 0},
     {"glGetProgramPipelineInfoLog_raw", 2, nif_glGetProgramPipelineInfoLog, 0},
     {"glGetBooleani_v_raw", 3, nif_glGetBooleani_v, 0},
@@ -11992,6 +12579,7 @@ static ErlNifFunc nif_functions[] = {
     {"glCreateBuffers_raw", 1, nif_glCreateBuffers, 0},
     {"glStencilOp_raw", 3, nif_glStencilOp, 0},
     {"glIsRenderbuffer_raw", 1, nif_glIsRenderbuffer, 0},
+    {"glTexSubImage1D_raw", 7, nif_glTexSubImage1D, 0},
     {"glFlush_raw", 0, nif_glFlush, 0},
     {"glIsQuery_raw", 1, nif_glIsQuery, 0},
     {"glIsTransformFeedback_raw", 1, nif_glIsTransformFeedback, 0},
@@ -12056,6 +12644,7 @@ static ErlNifFunc nif_functions[] = {
     {"glEnablei_raw", 2, nif_glEnablei, 0},
     {"glGenRenderbuffers_raw", 1, nif_glGenRenderbuffers, 0},
     {"glValidateProgram_raw", 1, nif_glValidateProgram, 0},
+    {"glBindVertexBuffer_raw", 4, nif_glBindVertexBuffer, 0},
     {"glCopyTexImage2D_raw", 8, nif_glCopyTexImage2D, 0},
     {"glBindVertexArray_raw", 1, nif_glBindVertexArray, 0},
     {"glVertexAttribI1i_raw", 2, nif_glVertexAttribI1i, 0},
@@ -12080,6 +12669,7 @@ static ErlNifFunc nif_functions[] = {
     {"glVertexAttribI4usv_raw", 2, nif_glVertexAttribI4usv, 0},
     {"glBlitFramebuffer_raw", 10, nif_glBlitFramebuffer, 0},
     {"glStencilMaskSeparate_raw", 2, nif_glStencilMaskSeparate, 0},
+    {"glVertexAttribFormat_raw", 5, nif_glVertexAttribFormat, 0},
     {"glScissor_raw", 4, nif_glScissor, 0},
     {"glTexImage2D_raw", 9, nif_glTexImage2D, 0},
     {"glGetError_raw", 0, nif_glGetError, 0},
@@ -12115,6 +12705,7 @@ static ErlNifFunc nif_functions[] = {
     {"glGenProgramPipelines_raw", 1, nif_glGenProgramPipelines, 0},
     {"glTexBuffer_raw", 3, nif_glTexBuffer, 0},
     {"glDrawArrays_raw", 3, nif_glDrawArrays, 0},
+    {"glVertexAttribIFormat_raw", 4, nif_glVertexAttribIFormat, 0},
     {"glLineWidth_raw", 1, nif_glLineWidth, 0},
     {"glDepthMask_raw", 1, nif_glDepthMask, 0},
     {"glCopyTexSubImage3D_raw", 9, nif_glCopyTexSubImage3D, 0},
@@ -12124,6 +12715,7 @@ static ErlNifFunc nif_functions[] = {
     {"glGetTexImage_raw", 5, nif_glGetTexImage, 0},
     {"glBindBuffer_raw", 2, nif_glBindBuffer, 0},
     {"glCopyTexSubImage1D_raw", 6, nif_glCopyTexSubImage1D, 0},
+    {"glVertexBindingDivisor_raw", 2, nif_glVertexBindingDivisor, 0},
     {"glBlendFunci_raw", 3, nif_glBlendFunci, 0},
     {"glBindTextureUnit_raw", 2, nif_glBindTextureUnit, 0},
     {"glBufferData_raw", 4, nif_glBufferData, 0},
@@ -12159,6 +12751,7 @@ static ErlNifFunc nif_functions[] = {
     {"glStencilFuncSeparate_raw", 4, nif_glStencilFuncSeparate, 0},
     {"glGetIntegerv_raw", 2, nif_glGetIntegerv, 0},
     {"glGenVertexArrays_raw", 1, nif_glGenVertexArrays, 0},
+    {"glVertexArrayVertexBuffer_raw", 5, nif_glVertexArrayVertexBuffer, 0},
     {"glDepthFunc_raw", 1, nif_glDepthFunc, 0},
     {"glGenFramebuffers_raw", 1, nif_glGenFramebuffers, 0},
     {"glDeleteProgramPipelines_raw", 2, nif_glDeleteProgramPipelines, 0},
@@ -12201,6 +12794,7 @@ static ErlNifFunc nif_functions[] = {
     {"glGenTransformFeedbacks_raw", 1, nif_glGenTransformFeedbacks, 0},
     {"glIsSampler_raw", 1, nif_glIsSampler, 0},
     {"glFrontFace_raw", 1, nif_glFrontFace, 0},
+    {"glVertexArrayAttribFormat_raw", 6, nif_glVertexArrayAttribFormat, 0},
     {"glBlendEquation_raw", 1, nif_glBlendEquation, 0},
     {"glGetString_raw", 1, nif_glGetString, 0},
     {"glLogicOp_raw", 1, nif_glLogicOp, 0},
@@ -12230,6 +12824,7 @@ static ErlNifFunc nif_functions[] = {
     {"glGetVertexAttribdv_raw", 3, nif_glGetVertexAttribdv, 0},
     {"glGetVertexAttribfv_raw", 3, nif_glGetVertexAttribfv, 0},
     {"glGetVertexAttribiv_raw", 3, nif_glGetVertexAttribiv, 0},
+    {"glVertexArrayAttribLFormat_raw", 5, nif_glVertexArrayAttribLFormat, 0},
     {"glDeleteBuffers_raw", 2, nif_glDeleteBuffers, 0},
     {"glGenBuffers_raw", 1, nif_glGenBuffers, 0},
     {"glActiveTexture_raw", 1, nif_glActiveTexture, 0},
@@ -12267,9 +12862,12 @@ static ErlNifFunc nif_functions[] = {
     {"glGetProgramiv_raw", 3, nif_glGetProgramiv, 0},
     {"glDeleteVertexArrays_raw", 2, nif_glDeleteVertexArrays, 0},
     {"glUseProgram_raw", 1, nif_glUseProgram, 0},
+    {"glReadPixels_raw", 7, nif_glReadPixels, 0},
     {"glDeleteProgram_raw", 1, nif_glDeleteProgram, 0},
+    {"glVertexAttribLFormat_raw", 4, nif_glVertexAttribLFormat, 0},
     {"glGetUniformLocation_raw", 2, nif_glGetUniformLocation, 0},
-    {"glCopyTextureSubImage2D_raw", 8, nif_glCopyTextureSubImage2D, 0}
+    {"glCopyTextureSubImage2D_raw", 8, nif_glCopyTextureSubImage2D, 0},
+    {"glVertexArrayAttribIFormat_raw", 5, nif_glVertexArrayAttribIFormat, 0}
 };
 
 ERL_NIF_INIT(
