@@ -48,6 +48,8 @@ set(BEAM_GL_SOURCES
     c_src/gl.c
     c_src/glad.c
 )
+include_directories(c_src/include)
+
 add_library(beam-gl SHARED ${BEAM_GL_SOURCES})
 
 set_target_properties(beam-gl PROPERTIES
