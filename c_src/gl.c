@@ -3,7 +3,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <pthread.h>
-#include <dlfcn.h>
+#if defined(_WIN32)
+    #include <windows.h>
+#else
+    #include <dlfcn.h>
+#endif
 #include <erl_nif.h>
 #include <EGL/egl.h>
 #include <glad/glad.h>
@@ -743,25 +747,40 @@ execute_command_fn egl_nif_execute_command = NULL;
 static int nif_module_load(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM arg)
 {
     (void)priv_data;
-char beam_egl_so_path[1024];
-if (!enif_get_string(env, arg, beam_egl_so_path, sizeof(beam_egl_so_path), ERL_NIF_LATIN1)) {
-    fprintf(stderr, "failed to read EGL binding library path from argument\n");
-    return -1;
-}
 
-egl_nif_lib_handle = dlopen(beam_egl_so_path, RTLD_NOW);
-if (!egl_nif_lib_handle) {
-    fprintf(stderr, "failed to load beam-egl.so: %s\n", dlerror());
-    return -1;
-}
+    char beam_egl_nif_path[1024];
+    if (!enif_get_string(env, arg, beam_egl_nif_path, sizeof(beam_egl_nif_path), ERL_NIF_LATIN1)) {
+        fprintf(stderr, "failed to read EGL binding library path from argument\n");
+        return -1;
+    }
 
-egl_nif_execute_command = dlsym(egl_nif_lib_handle, "egl_execute_command");
-if (!egl_nif_execute_command) {
-    fprintf(stderr, "failed to load symbol egl_execute_command: %s\n", dlerror());
-    dlclose(egl_nif_lib_handle);
-    return -1;
-}
+#if defined(_WIN32)
+    HINSTANCE egl_nif_lib_handle = LoadLibrary(beam_egl_nif_path);
+    if (!egl_nif_lib_handle) {
+        printf("failed to load beam-egl.dll: %s\n", GetLastError());
+        return -1;
+    }
 
+    egl_nif_execute_command = (execute_command_fn)GetProcAddress(egl_nif_lib_handle, "egl_execute_command");
+    if (!egl_nif_execute_command) {
+        printf("failed to load symbol egl_execute_command: %s\n", GetLastError());
+        FreeLibrary(egl_nif_lib_handle);
+        return -1;
+    }
+#else
+    egl_nif_lib_handle = dlopen(beam_egl_nif_path, RTLD_NOW);
+    if (!egl_nif_lib_handle) {
+        fprintf(stderr, "failed to load beam-egl.so: %s\n", dlerror());
+        return -1;
+    }
+
+    egl_nif_execute_command = dlsym(egl_nif_lib_handle, "egl_execute_command");
+    if (!egl_nif_execute_command) {
+        fprintf(stderr, "failed to load symbol egl_execute_command: %s\n", dlerror());
+        dlclose(egl_nif_lib_handle);
+        return -1;
+    }
+#endif
 
     beam_atom_max_uniform_buffer_bindings = enif_make_atom(env, "max_uniform_buffer_bindings");
     beam_atom_less = enif_make_atom(env, "less");
