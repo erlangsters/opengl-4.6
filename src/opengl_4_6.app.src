@@ -1,14 +1,13 @@
-{application, opengl_4_6,
- [{description, "An OTP library"},
+{application, opengl_4_6, [
+  {description, "OpenGL 4.6 binding for the BEAM"},
   {vsn, "0.0.1"},
   {registered, []},
-  {applications,
-   [kernel,
+  {applications, [
+    kernel,
     stdlib
-   ]},
-  {env,[]},
-  {modules, []},
-
-  {licenses, ["Apache-2.0"]},
-  {links, []}
- ]}.
+  ]},
+  {env, []},
+  {modules, [gl]},
+  {licenses, ["MIT"]},
+  {links, ["https://github.com/erlangsters/opengl-4.6"]}
+]}.
