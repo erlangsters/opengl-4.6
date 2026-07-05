@@ -1,0 +1,4 @@
+[{<<"egl">>,
+  {git,"https://github.com/erlangsters/egl-1.5.git",
+       {ref,"68c47c44b596b81b069b6eec6377819f2e109f04"}},
+  0}].
