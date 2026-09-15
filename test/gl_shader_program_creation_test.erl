@@ -59,19 +59,19 @@ shader_precision_and_program_creation_test() ->
     {ok, no_error} = gl:get_error().
 
 assert_program_linked(Program) ->
-    case gl:get_program_link_status(Program) of
-        {ok, true} ->
+    case gl:get_program(Program, link_status, 1) of
+        {ok, [1]} ->
             ok;
-        {ok, false} ->
+        {ok, [0]} ->
             {ok, InfoLog} = gl:get_program_info_log(Program, 1024),
             ?assertEqual({program_link_failed, InfoLog}, ok)
     end.
 
 assert_pipeline_valid(Pipeline) ->
-    case gl:get_program_pipeline_validation_status(Pipeline) of
-        {ok, true} ->
+    case gl:get_program_pipeline(Pipeline, validate_status, 1) of
+        {ok, [1]} ->
             ok;
-        {ok, false} ->
+        {ok, [0]} ->
             {ok, InfoLog} = gl:get_program_pipeline_info_log(Pipeline, 1024),
             ?assertEqual({program_pipeline_validation_failed, InfoLog}, ok)
     end.

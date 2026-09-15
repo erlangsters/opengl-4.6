@@ -4,6 +4,11 @@ project(beam_gl LANGUAGES C)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+# OTP 29 NIF argv is const; generated wrappers still pass it as ERL_NIF_TERM*.
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-Wno-incompatible-pointer-types)
+endif()
+
 if(NOT DEFINED ERLANG_ERTS_DIR)
     message(FATAL_ERROR "ERLANG_ERTS_DIR must be defined (pass -DERLANG_ERTS_DIR=...)")
 endif()
@@ -56,3 +61,6 @@ if(APPLE)
 endif()
 
 target_link_libraries(beam-gl PRIVATE ei ${CMAKE_DL_LIBS})
+if(WIN32)
+    target_link_libraries(beam-gl PRIVATE libEGL)
+endif()

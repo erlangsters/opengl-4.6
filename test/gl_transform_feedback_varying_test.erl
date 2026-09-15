@@ -6,7 +6,7 @@ transform_feedback_varying_reflection_test() ->
 
     {Program, VertexShader, FragmentShader} = create_program(),
 
-    {ok, 1} = gl:get_program_transform_feedback_varyings_count(Program),
+    {ok, [1]} = gl:get_program(Program, transform_feedback_varyings, 1),
     {ok, 1, float, <<"tf_value">>} =
         gl:get_transform_feedback_varying(Program, 0, 64),
 
@@ -41,19 +41,19 @@ create_program() ->
     {Program, VertexShader, FragmentShader}.
 
 assert_shader_compiled(Shader) ->
-    case gl:get_shader_compile_status(Shader) of
-        {ok, true} ->
+    case gl:get_shader(Shader, compile_status, 1) of
+        {ok, [1]} ->
             ok;
-        {ok, false} ->
+        {ok, [0]} ->
             {ok, InfoLog} = gl:get_shader_info_log(Shader, 1024),
             ?assertEqual({shader_compile_failed, InfoLog}, ok)
     end.
 
 assert_program_linked(Program) ->
-    case gl:get_program_link_status(Program) of
-        {ok, true} ->
+    case gl:get_program(Program, link_status, 1) of
+        {ok, [1]} ->
             ok;
-        {ok, false} ->
+        {ok, [0]} ->
             {ok, InfoLog} = gl:get_program_info_log(Program, 1024),
             ?assertEqual({program_link_failed, InfoLog}, ok)
     end.

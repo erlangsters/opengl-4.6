@@ -22,12 +22,12 @@ debug_message_log_test() ->
     {ok, no_error} = gl:get_error().
 
 drain_debug_messages() ->
-    case gl:get_debug_logged_messages_count() of
-        {ok, Count} when Count > 0 ->
-            {ok, MaxLength0} = gl:get_max_debug_message_length(),
+    case gl:get_integer(debug_logged_messages, 1) of
+        {ok, [Count]} when Count > 0 ->
+            {ok, [MaxLength0]} = gl:get_integer(max_debug_message_length, 1),
             MaxLength = max(MaxLength0, 1),
             {ok, _Messages} = gl:get_debug_message_log(Count, Count * MaxLength),
             drain_debug_messages();
-        {ok, 0} ->
+        {ok, [0]} ->
             ok
     end.
