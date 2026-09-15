@@ -1,4 +1,4 @@
-{application, opengl_4_6, [
+{application, gl, [
   {description, "OpenGL 4.6 binding for the BEAM"},
   {vsn, "0.0.1"},
   {registered, []},
